@@ -11,8 +11,8 @@ domaine en ligne.
 ## Fichiers
 - `index.html` — toute la page (une seule page). Réglages dans le `<script>` en bas :
   objet `JULIEN` (tél., WhatsApp, e-mail, zone, horaires), `SERVICES` (tarifs
-  indicatifs À FAIRE VALIDER par Julien), `NETTOYAGES` + `SUPPLEMENTS_NETTOYAGE`
-  (formules de nettoyage, prix produits compris, à faire valider aussi), `ASTUCES`, diagnostic `DIAG_*`,
+  validés par Julien le 07/11/2026), `NETTOYAGES` + `SUPPLEMENTS_NETTOYAGE`
+  (formules de nettoyage, prix produits compris, validés aussi), `ASTUCES`, diagnostic `DIAG_*`,
   assistant vocal `AGENT_RAYON`. Version dans le commentaire d'en-tête et `VERSION`.
 - `manifest.webmanifest`, `sw.js`, `icones/` — page installable (PWA). Chemins
   relatifs (`./`) pour marcher aussi bien sur baiji.fr/tac-velo/ que sur tac-velo.fr/.
@@ -23,7 +23,7 @@ domaine en ligne.
 - Code commenté en français : l'auteur apprend en lisant.
 - Nom affiché : « TAC Vélo », Julien présenté comme le mécanicien. Ne jamais écrire « Juju ».
 - Adresse de l'atelier publiée depuis la v1.8.1 (9 avenue Lannes, 91190 Gif-sur-Yvette, « atelier de quartier », sur rendez-vous) : même adresse que la fiche Google.
-- Reste en `noindex` tant que Julien n'a pas validé les tarifs.
+- Tarifs (réparations + nettoyage) validés par Julien le 07/11/2026 : plus de `noindex` depuis la v1.9.1 (page visible de Google). Toute nouvelle prestation ou nouveau prix : à refaire valider par Julien.
 - Rayon (agent ElevenLabs `agent_9901m6b24af2f15s8fxy0ezqm92c`) : ses tarifs et
   coordonnées sont aussi dans son prompt (à modifier en même temps que la page).
   Prompt mis à jour le 07/11/2026 (formules de nettoyage v1.9.0 ; TAC Vélo, atelier de quartier 9 avenue Lannes sur
