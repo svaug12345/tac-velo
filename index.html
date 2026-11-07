@@ -2,7 +2,7 @@
 <!--
   ============================================================
   tac-velo.fr — TAC Vélo, Julien mécanicien vélo
-  Version 1.7.0
+  Version 1.7.1
   ------------------------------------------------------------
   Site vitrine d'une page pour Julien, mécanicien vélo.
   Devise : « Le vélo doit être un plaisir ».
@@ -47,6 +47,9 @@
               directement quoi faire, étape par étape
    • v1.6.0 : site installable sur téléphone (manifeste, icône vélo, service worker)
    • v1.6.1 : compteur de visites de baiji.fr (/journal.js)
+   • v1.7.1 : on insiste sur « prix annoncé avant » : Julien regarde le vélo,
+              annonce le prix, le client décide (accroche, badge, méthode,
+              bloc « sans coût caché », étapes)
    • v1.7.0 : le site devient « TAC Vélo » et quitte baiji.fr/julien/ pour son
               propre dépôt (svaug12345/tac-velo), servi sur tac-velo.fr ;
               mention EI + SIRET en pied de page ; compteur /journal.js retiré
@@ -68,7 +71,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
 <link rel="icon" href="icones/icone-192.png" type="image/png">
-<meta name="description" content="TAC Vélo : Julien, mécanicien vélo à Gif-sur-Yvette, à l'atelier ou à domicile. Le vélo doit être un plaisir : conseils pour vous dépanner vous-même, tarifs affichés, aucun coût caché.">
+<meta name="description" content="TAC Vélo : Julien, mécanicien vélo à Gif-sur-Yvette, à l'atelier ou à domicile. Le vélo doit être un plaisir : conseils pour vous dépanner vous-même, prix annoncé avant réparation, c'est vous qui décidez.">
 <!-- Invisible des moteurs de recherche tant que Julien n'a pas validé les tarifs.
      Quand tout est prêt : supprimer cette ligne pour que Google puisse trouver le site. -->
 <meta name="robots" content="noindex">
@@ -516,7 +519,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div>
       <span class="kicker">TAC Vélo · Julien, mécanicien vélo · Gif-sur-Yvette</span>
       <h1>Le vélo doit être un <span class="surligne">plaisir.</span></h1>
-      <p class="lead">Un pneu à plat, une chaîne qui grince, ça ne devrait pas gâcher votre balade. Je vous montre <strong>comment vous dépanner vous-même</strong> quand c'est simple. Et quand c'est trop compliqué, ou que vous préférez rouler sans vous en soucier, je m'en occupe, <strong>au prix affiché</strong>.</p>
+      <p class="lead">Un pneu à plat, une chaîne qui grince, ça ne devrait pas gâcher votre balade. Je vous montre <strong>comment vous dépanner vous-même</strong> quand c'est simple. Et quand c'est trop compliqué, ou que vous préférez rouler sans vous en soucier, je m'en occupe : <strong>je regarde votre vélo, je vous annonce le prix, et c'est vous qui décidez</strong>.</p>
       <div class="actions">
         <a class="btn btn-main js-appel" href="#contact">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>
@@ -526,7 +529,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </div>
       <ul class="badges">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tarifs affichés</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Aucun coût caché</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Prix annoncé avant, vous décidez</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Conseils gratuits</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>À l'atelier ou à domicile</li>
       </ul>
@@ -588,7 +591,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="engagement apparait">
         <span class="num">01</span>
         <h3>Le prix avant, pas après</h3>
-        <p>Je regarde, je vous dis ce qu'il faut faire et combien ça coûte. Rien n'est lancé sans votre accord.</p>
+        <p>Je regarde d'abord votre vélo, puis je vous annonce le prix. C'est vous qui décidez : oui, je répare ; non, rien n'est fait. Pas de mauvaise surprise.</p>
       </div>
       <div class="engagement apparait">
         <span class="num">02</span>
@@ -650,7 +653,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="sans-cache apparait">
       <h3>Sans coût caché. Jamais.</h3>
       <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Le prix total, main-d'œuvre et pièces, vous est annoncé avant de commencer.</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Je regarde d'abord votre vélo, puis je vous annonce le prix total, main-d'œuvre et pièces, avant de commencer. C'est vous qui décidez.</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Aucun supplément sans votre accord. Si je découvre autre chose, je vous appelle d'abord.</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Le diagnostic et les conseils sont gratuits. Si vous ne faites pas réparer, vous ne payez rien.</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Une facture détaillée, ligne par ligne, et vos pièces usées rendues.</li>
@@ -729,8 +732,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <p>Vous décrivez le problème en deux phrases. On choisit ensemble : vous passez à l'atelier, ou Julien vient chez vous.</p>
       </div>
       <div class="etape apparait">
-        <h3>Julien regarde et chiffre</h3>
-        <p>Diagnostic gratuit, explications, prix total. Vous décidez tranquillement, sans pression.</p>
+        <h3>Julien regarde et annonce le prix</h3>
+        <p>Diagnostic gratuit, explications, puis le prix total, annoncé à l'avance. Vous décidez tranquillement, sans pression : pas de mauvaise surprise.</p>
       </div>
       <div class="etape apparait">
         <h3>Vous repartez en roulant</h3>
@@ -840,7 +843,7 @@ const JULIEN = {
   horaires:   "",            // ex. "Du mardi au samedi, 9 h – 19 h"
   horairesDetail: "Si je ne décroche pas, laissez un message : je rappelle.",
 };
-const VERSION = "1.7.0";     // ← à augmenter à chaque modification (voir l'historique en haut)
+const VERSION = "1.7.1";     // ← à augmenter à chaque modification (voir l'historique en haut)
 
 /* ------------------------------------------------------------
    Pictos (bibliothèque Lucide, licence ISC) — juste le dessin
