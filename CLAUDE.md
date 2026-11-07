@@ -27,6 +27,8 @@ domaine en ligne.
   coordonnées sont aussi dans son prompt (à modifier en même temps que la page).
   Prompt mis à jour le 07/11/2026 (TAC Vélo, atelier de quartier 9 avenue Lannes sur
   rendez-vous, « Julien regarde, annonce le prix, le client décide »).
+  Limites (07/11/2026) : 30 appels/jour, 4 min max par appel, voix enregistrée,
+  audio et transcriptions gardés 30 jours.
   Domaines autorisés : baiji.fr, www.baiji.fr, tac-velo.fr, www.tac-velo.fr. Ne PAS activer « Require origin header » : erreur 3000
   « domaine non autorisé » (incident corrigé le 07/11/2026).
 - Pas de compteur de visites : `/journal.js` de baiji.fr ne compte que baiji.fr.
