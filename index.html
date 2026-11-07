@@ -2,7 +2,7 @@
 <!--
   ============================================================
   tac-velo.fr — TAC Vélo, Julien mécanicien vélo
-  Version 1.7.1
+  Version 1.8.0
   ------------------------------------------------------------
   Site vitrine d'une page pour Julien, mécanicien vélo.
   Devise : « Le vélo doit être un plaisir ».
@@ -47,6 +47,9 @@
               directement quoi faire, étape par étape
    • v1.6.0 : site installable sur téléphone (manifeste, icône vélo, service worker)
    • v1.6.1 : compteur de visites de baiji.fr (/journal.js)
+   • v1.8.0 : l'atelier présenté comme un « atelier de quartier » (proximité,
+              confiance, un seul interlocuteur) : carte « Où ? », badge, et
+              engagement 05 « Votre mécanicien de quartier »
    • v1.7.1 : on insiste sur « prix annoncé avant » : Julien regarde le vélo,
               annonce le prix, le client décide (accroche, badge, méthode,
               bloc « sans coût caché », étapes)
@@ -71,7 +74,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
 <link rel="icon" href="icones/icone-192.png" type="image/png">
-<meta name="description" content="TAC Vélo : Julien, mécanicien vélo à Gif-sur-Yvette, à l'atelier ou à domicile. Le vélo doit être un plaisir : conseils pour vous dépanner vous-même, prix annoncé avant réparation, c'est vous qui décidez.">
+<meta name="description" content="TAC Vélo : Julien, mécanicien vélo à Gif-sur-Yvette, dans son atelier de quartier ou à domicile. Le vélo doit être un plaisir : conseils pour vous dépanner vous-même, prix annoncé avant réparation, c'est vous qui décidez.">
 <!-- Invisible des moteurs de recherche tant que Julien n'a pas validé les tarifs.
      Quand tout est prêt : supprimer cette ligne pour que Google puisse trouver le site. -->
 <meta name="robots" content="noindex">
@@ -236,7 +239,7 @@ header .btn { min-height: 42px; padding: 0 16px; font-size: 13px; }
 .methode .kicker { color: var(--accent); }
 .methode h2 { max-width: 16ch; }
 .methode .intro { color: color-mix(in srgb, var(--deep-ink) 72%, transparent); max-width: 52ch; margin: 18px 0 40px; }
-.engagements { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.engagements { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); } /* 180 px : les 5 engagements tiennent sur une ligne en grand écran */
 .engagement {
   border: 1px solid color-mix(in srgb, var(--deep-ink) 18%, transparent);
   border-radius: var(--radius); padding: 24px 22px;
@@ -531,7 +534,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tarifs affichés</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Prix annoncé avant, vous décidez</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Conseils gratuits</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>À l'atelier ou à domicile</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Atelier de quartier ou à domicile</li>
       </ul>
     </div>
 
@@ -607,6 +610,11 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <span class="num">04</span>
         <h3>Je vous apprends à vous dépanner</h3>
         <p>Les petites réparations, vous pouvez les faire vous-même : je vous montre comment. Un client autonome, c'est un client qui roule.</p>
+      </div>
+      <div class="engagement apparait">
+        <span class="num">05</span>
+        <h3>Votre mécanicien de quartier</h3>
+        <p>Un seul interlocuteur, du premier appel à la remise du vélo. Je suis du coin, je connais vos routes, et je tiens à ce qu'on se recroise avec le sourire.</p>
       </div>
     </div>
   </div>
@@ -749,9 +757,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
           <!-- picto atelier (Lucide « warehouse », ISC) -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21V10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v11"/><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 1.132-1.803l7.95-3.974a2 2 0 0 1 1.837 0l7.948 3.974A2 2 0 0 1 22 8z"/><path d="M6 13h12"/><path d="M6 17h12"/></svg>
         </span>
-        <h3>À l'atelier, à Gif-sur-Yvette</h3>
-        <p>Vous déposez votre vélo, Julien a tous ses outils sous la main. Idéal pour une révision complète ou une grosse réparation.</p>
-        <p class="pour">L'adresse vous est donnée au téléphone.</p>
+        <h3>L'atelier de quartier, à Gif-sur-Yvette</h3>
+        <p>Un atelier à taille humaine, tout près de chez vous. Pas de comptoir ni de file d'attente : vous confiez votre vélo directement à celui qui le répare, et il prend le temps de vous expliquer. Idéal pour une révision complète ou une grosse réparation.</p>
+        <p class="pour">Sur rendez-vous : l'adresse vous est donnée au téléphone.</p>
       </div>
       <div class="lieu apparait">
         <span class="pic">
@@ -839,11 +847,11 @@ const JULIEN = {
   whatsapp:   "33658236740",           // même numéro, chiffres seuls, sans le 0 ni le + (format exigé par WhatsApp)
   email:      "julien.vaugoude@gmail.com",
   zone:       "Gif-sur-Yvette et communes voisines",
-  zoneDetail: "À l'atelier, ou à domicile : Julien se déplace chez vous.",
+  zoneDetail: "À l'atelier de quartier, ou à domicile : Julien se déplace chez vous.",
   horaires:   "",            // ex. "Du mardi au samedi, 9 h – 19 h"
   horairesDetail: "Si je ne décroche pas, laissez un message : je rappelle.",
 };
-const VERSION = "1.7.1";     // ← à augmenter à chaque modification (voir l'historique en haut)
+const VERSION = "1.8.0";     // ← à augmenter à chaque modification (voir l'historique en haut)
 
 /* ------------------------------------------------------------
    Pictos (bibliothèque Lucide, licence ISC) — juste le dessin
