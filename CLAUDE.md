@@ -25,8 +25,9 @@ domaine en ligne.
 - Reste en `noindex` tant que Julien n'a pas validé les tarifs.
 - Rayon (agent ElevenLabs `agent_9901m6b24af2f15s8fxy0ezqm92c`) : ses tarifs et
   coordonnées sont aussi dans son prompt (à modifier en même temps que la page).
-  Domaines autorisés : baiji.fr (+ tac-velo.fr et www.tac-velo.fr à ajouter quand le
-  domaine est actif). Ne PAS activer « Require origin header » : erreur 3000
+  Prompt mis à jour le 07/11/2026 (TAC Vélo, atelier de quartier 9 avenue Lannes sur
+  rendez-vous, « Julien regarde, annonce le prix, le client décide »).
+  Domaines autorisés : baiji.fr, www.baiji.fr, tac-velo.fr, www.tac-velo.fr. Ne PAS activer « Require origin header » : erreur 3000
   « domaine non autorisé » (incident corrigé le 07/11/2026).
 - Pas de compteur de visites : `/journal.js` de baiji.fr ne compte que baiji.fr.
 
