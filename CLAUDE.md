@@ -21,7 +21,7 @@ domaine en ligne.
   en tête de `index.html` (sinon les téléphones gardent l'ancienne version en cache).
 - Code commenté en français : l'auteur apprend en lisant.
 - Nom affiché : « TAC Vélo », Julien présenté comme le mécanicien. Ne jamais écrire « Juju ».
-- Adresse de l'atelier NON publiée (donnée au téléphone).
+- Adresse de l'atelier publiée depuis la v1.8.1 (9 avenue Lannes, 91190 Gif-sur-Yvette, « atelier de quartier », sur rendez-vous) : même adresse que la fiche Google.
 - Reste en `noindex` tant que Julien n'a pas validé les tarifs.
 - Rayon (agent ElevenLabs `agent_9901m6b24af2f15s8fxy0ezqm92c`) : ses tarifs et
   coordonnées sont aussi dans son prompt (à modifier en même temps que la page).

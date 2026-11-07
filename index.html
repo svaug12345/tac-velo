@@ -2,7 +2,7 @@
 <!--
   ============================================================
   tac-velo.fr — TAC Vélo, Julien mécanicien vélo
-  Version 1.8.0
+  Version 1.8.1
   ------------------------------------------------------------
   Site vitrine d'une page pour Julien, mécanicien vélo.
   Devise : « Le vélo doit être un plaisir ».
@@ -47,6 +47,10 @@
               directement quoi faire, étape par étape
    • v1.6.0 : site installable sur téléphone (manifeste, icône vélo, service worker)
    • v1.6.1 : compteur de visites de baiji.fr (/journal.js)
+   • v1.8.1 : adresse de l'atelier publiée (9 avenue Lannes, lien Google Maps,
+              aussi en pied de page) ; contrôle d'une minute sur 4 colonnes
+              égales avec numéros en pastille ; titres des étapes à 20 px et colonne du
+              milieu plus large (« Julien regarde et annonce le prix » sur une ligne)
    • v1.8.0 : l'atelier présenté comme un « atelier de quartier » (proximité,
               confiance, un seul interlocuteur) : carte « Où ? », badge, et
               engagement 05 « Votre mécanicien de quartier »
@@ -273,13 +277,21 @@ header .btn { min-height: 42px; padding: 0 16px; font-size: 13px; }
    Chaque astuce est un <details> : on touche le titre, ça s'ouvre.
    Pas besoin de JavaScript pour ouvrir/fermer, c'est natif. */
 .check-minute {
-  display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  /* 2 colonnes sur téléphone, 4 colonnes égales dès 700 px (avant : les 4 cases
+     se tassaient à gauche, la grille prévoyant plus de colonnes que de cases) */
+  display: grid; gap: 18px 22px; grid-template-columns: 1fr 1fr;
   background: var(--accent); color: var(--accent-ink); border: 2px solid #1b1d1a;
   border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px;
 }
-.check-minute b { font: 900 30px/1 var(--display); display: block; }
-.check-minute span { font-size: 15px; font-weight: 600; }
-.check-titre { grid-column: 1 / -1; font: 800 18px/1.2 var(--display); font-stretch: 105%; }
+@media (min-width: 700px) { .check-minute { grid-template-columns: repeat(4, 1fr); } }
+/* Numéro dans une pastille sombre, centrée au-dessus du texte */
+.check-minute > div:not(.check-titre) { display: grid; justify-items: center; text-align: center; gap: 10px; align-content: start; }
+.check-minute b {
+  font: 900 20px/1 var(--display); display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%; background: #1b1d1a; color: var(--accent);
+}
+.check-minute span { font-size: 15px; font-weight: 600; line-height: 1.4; }
+.check-titre { grid-column: 1 / -1; font: 800 18px/1.2 var(--display); font-stretch: 105%; text-align: center; }
 .astuces { display: grid; gap: 12px; }
 @media (min-width: 860px) { .astuces { grid-template-columns: 1fr 1fr; align-items: start; } }
 .astuce { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
@@ -432,7 +444,10 @@ header .btn { min-height: 42px; padding: 0 16px; font-size: 13px; }
   display: grid; place-items: center; font: 900 24px/1 var(--display);
   background: var(--accent); color: var(--accent-ink); border: 2px solid var(--ink);
 }
-.etape h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.etape h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+/* Grand écran : la colonne du milieu est un peu plus large pour que
+   « Julien regarde et annonce le prix » tienne sur une seule ligne */
+@media (min-width: 900px) { .etapes { grid-template-columns: 1fr 1.25fr 1fr; } }
 .etape p { margin: 0; color: var(--muted); }
 
 /* ---------- Où ? À l'atelier ou chez vous ---------- */
@@ -749,8 +764,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </div>
     </div>
 
-    <!-- Les deux façons de faire réparer. L'adresse exacte de l'atelier
-         n'est pas publiée : Julien la donne au téléphone. -->
+    <!-- Les deux façons de faire réparer. L'adresse de l'atelier est publiée
+         (avec un lien Google Maps) : c'est aussi celle de la fiche Google. -->
     <div class="lieux" id="ou">
       <div class="lieu apparait">
         <span class="pic">
@@ -759,7 +774,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         </span>
         <h3>L'atelier de quartier, à Gif-sur-Yvette</h3>
         <p>Un atelier à taille humaine, tout près de chez vous. Pas de comptoir ni de file d'attente : vous confiez votre vélo directement à celui qui le répare, et il prend le temps de vous expliquer. Idéal pour une révision complète ou une grosse réparation.</p>
-        <p class="pour">Sur rendez-vous : l'adresse vous est donnée au téléphone.</p>
+        <p class="pour"><a href="https://www.google.com/maps/search/?api=1&amp;query=9+avenue+Lannes+91190+Gif-sur-Yvette" target="_blank" rel="noopener">9 avenue Lannes, Gif-sur-Yvette</a> · sur rendez-vous</p>
       </div>
       <div class="lieu apparait">
         <span class="pic">
@@ -819,7 +834,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap">
     <span>TAC Vélo · Julien, mécanicien vélo · Le vélo doit être un plaisir</span>
     <!-- Mention obligatoire pour une entreprise individuelle : nom + SIRET -->
-    <span>EI Julien Vaugoude · SIRET 990 844 326 00019</span>
+    <span>EI Julien Vaugoude · 9 avenue Lannes, 91190 Gif-sur-Yvette · SIRET 990 844 326 00019</span>
     <span id="version"></span>
   </div>
 </footer>
@@ -851,7 +866,7 @@ const JULIEN = {
   horaires:   "",            // ex. "Du mardi au samedi, 9 h – 19 h"
   horairesDetail: "Si je ne décroche pas, laissez un message : je rappelle.",
 };
-const VERSION = "1.8.0";     // ← à augmenter à chaque modification (voir l'historique en haut)
+const VERSION = "1.8.1";     // ← à augmenter à chaque modification (voir l'historique en haut)
 
 /* ------------------------------------------------------------
    Pictos (bibliothèque Lucide, licence ISC) — juste le dessin
