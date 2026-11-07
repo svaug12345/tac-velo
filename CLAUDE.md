@@ -11,7 +11,8 @@ domaine en ligne.
 ## Fichiers
 - `index.html` — toute la page (une seule page). Réglages dans le `<script>` en bas :
   objet `JULIEN` (tél., WhatsApp, e-mail, zone, horaires), `SERVICES` (tarifs
-  indicatifs À FAIRE VALIDER par Julien), `ASTUCES`, diagnostic `DIAG_*`,
+  indicatifs À FAIRE VALIDER par Julien), `NETTOYAGES` + `SUPPLEMENTS_NETTOYAGE`
+  (formules de nettoyage, prix produits compris, à faire valider aussi), `ASTUCES`, diagnostic `DIAG_*`,
   assistant vocal `AGENT_RAYON`. Version dans le commentaire d'en-tête et `VERSION`.
 - `manifest.webmanifest`, `sw.js`, `icones/` — page installable (PWA). Chemins
   relatifs (`./`) pour marcher aussi bien sur baiji.fr/tac-velo/ que sur tac-velo.fr/.
@@ -25,7 +26,7 @@ domaine en ligne.
 - Reste en `noindex` tant que Julien n'a pas validé les tarifs.
 - Rayon (agent ElevenLabs `agent_9901m6b24af2f15s8fxy0ezqm92c`) : ses tarifs et
   coordonnées sont aussi dans son prompt (à modifier en même temps que la page).
-  Prompt mis à jour le 07/11/2026 (TAC Vélo, atelier de quartier 9 avenue Lannes sur
+  Prompt mis à jour le 07/11/2026 (formules de nettoyage v1.9.0 ; TAC Vélo, atelier de quartier 9 avenue Lannes sur
   rendez-vous, « Julien regarde, annonce le prix, le client décide »).
   Limites (07/11/2026) : 30 appels/jour, 4 min max par appel, voix enregistrée,
   audio et transcriptions gardés 30 jours.
