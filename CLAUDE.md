@@ -24,6 +24,11 @@ domaine en ligne.
 - Nom affiché : « TAC Vélo », Julien présenté comme le mécanicien. Ne jamais écrire « Juju ».
 - Adresse de l'atelier publiée depuis la v1.8.1 (9 avenue Lannes, 91190 Gif-sur-Yvette, « atelier de quartier », sur rendez-vous) : même adresse que la fiche Google.
 - Tarifs (réparations + nettoyage) validés par Julien le 07/11/2026 : plus de `noindex` depuis la v1.9.1 (page visible de Google). Toute nouvelle prestation ou nouveau prix : à refaire valider par Julien.
+- Référencement (v1.10.0) : nom, adresse et téléphone doivent rester identiques dans
+  le JSON-LD (`<head>`), le pied de page et la fiche Google Business Profile.
+- Zone validée par Julien : Gif-sur-Yvette, Gometz, Bures-sur-Yvette (bandeau « zone »,
+  `JULIEN.zone` et `areaServed` du JSON-LD, qui détaille Gometz-le-Châtel et Gometz-la-Ville).
+- Pas d'horaires affichés (choix de Julien) : `JULIEN.horaires` reste vide, pas d'`openingHours`.
 - Rayon (agent ElevenLabs `agent_9901m6b24af2f15s8fxy0ezqm92c`) : ses tarifs et
   coordonnées sont aussi dans son prompt (à modifier en même temps que la page).
   Prompt mis à jour le 07/11/2026 (formules de nettoyage v1.9.0 ; TAC Vélo, atelier de quartier 9 avenue Lannes sur
@@ -32,7 +37,20 @@ domaine en ligne.
   audio et transcriptions gardés 30 jours.
   Domaines autorisés : baiji.fr, www.baiji.fr, tac-velo.fr, www.tac-velo.fr. Ne PAS activer « Require origin header » : erreur 3000
   « domaine non autorisé » (incident corrigé le 07/11/2026).
-- Pas de compteur de visites : `/journal.js` de baiji.fr ne compte que baiji.fr.
+- Pas de compteur `/journal.js` (il ne compte que baiji.fr). Depuis la v1.10.0 : suivi
+  Google Analytics 4 + Google Ads, réglé dans l'objet `SUIVI` (dernier gros `<script>`).
+  Bandeau cookies CNIL : aucun script Google avant « Accepter », boutons Accepter/Refuser
+  identiques, choix gardé 6 mois, lien « Cookies » en pied de page. Ne pas passer en
+  « mode avancé » du consentement (pings Google avant accord) sans avis juridique.
+
+## Adresse officielle provisoire (depuis la v1.10.0, 10/11/2026)
+Tant que tac-velo.fr n'est pas en ligne, le site est publié sur **https://baiji.fr/julien/**
+(dossier `julien/` du dépôt `svaug12345.github.io`) et c'est cette adresse qui est déclarée
+partout : `<link rel="canonical">`, `og:url`, `og:image`, JSON-LD (`@id`, `url`, `logo`,
+`image`), `sitemap.xml`, ligne `Sitemap:` de `robots.txt`. Le jour où tac-velo.fr marche :
+tout remettre sur `https://tac-velo.fr/`, puis rediriger baiji.fr/julien/ vers tac-velo.fr
+et déclarer le changement d'adresse dans Search Console. Google Ads (AW-1041764794) et la
+conversion « Click to call » ne dépendent pas de l'adresse.
 
 ## Domaine (OVH, zone DNS de tac-velo.fr)
 Au 07/11/2026, le domaine n'était pas encore enregistré à l'AFNIC (commande OVH en cours).
