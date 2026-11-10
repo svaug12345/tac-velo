@@ -49,7 +49,7 @@ Tant que tac-velo.fr n'est pas en ligne, le site est publié sur **https://baiji
 partout : `<link rel="canonical">`, `og:url`, `og:image`, JSON-LD (`@id`, `url`, `logo`,
 `image`), `sitemap.xml`, ligne `Sitemap:` de `robots.txt`. Le jour où tac-velo.fr marche :
 tout remettre sur `https://tac-velo.fr/`, puis rediriger baiji.fr/julien/ vers tac-velo.fr
-et déclarer le changement d'adresse dans Search Console. Google Ads (AW-1041764794) et la
+et déclarer le changement d'adresse dans Search Console. Google Ads (AW-18568190227 depuis la v1.10.2 ; l'ancien compte AW-1041764794 / 110-150-9374 est fermé) et la
 conversion « Click to call » ne dépendent pas de l'adresse.
 
 ## Domaine (OVH, zone DNS de tac-velo.fr)
