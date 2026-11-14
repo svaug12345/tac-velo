@@ -9,11 +9,20 @@ v1.6.1), qui doit devenir une simple redirection vers tac-velo.fr une fois le
 domaine en ligne.
 
 ## Fichiers
-- `index.html` — toute la page (une seule page). Réglages dans le `<script>` en bas :
-  objet `JULIEN` (tél., WhatsApp, e-mail, zone, horaires), `SERVICES` (tarifs
-  validés par Julien le 07/11/2026), `NETTOYAGES` + `SUPPLEMENTS_NETTOYAGE`
-  (formules de nettoyage, prix produits compris, validés aussi), `ASTUCES`, diagnostic `DIAG_*`,
-  assistant vocal `AGENT_RAYON`. Version dans le commentaire d'en-tête et `VERSION`.
+- `index.html` — toute la page (une seule page). Depuis la v1.13.0, les tarifs, les
+  formules de nettoyage, les astuces et les questions fréquentes sont ÉCRITS EN DUR dans
+  le HTML (plus de listes `SERVICES` / `NETTOYAGES` / `ASTUCES` dans le script) pour que
+  tous les moteurs les lisent. Le script garde : objet `JULIEN` (tél., WhatsApp, e-mail,
+  zone, horaires), diagnostic `DIAG_*` (qui relit les étapes des astuces dans la page :
+  garder `id="astuce-…"`, `<p class="outils">` et `<ol>`), assistant vocal `AGENT_RAYON`,
+  suivi `SUIVI`. Version dans le commentaire d'en-tête et `VERSION`.
+- Un prix est répété à 5 endroits, à changer ensemble : la carte du tarif (HTML),
+  `DIAG_VERDICTS` (script), les questions fréquentes, `hasOfferCatalog` du JSON-LD,
+  et le prompt de Rayon côté ElevenLabs.
+- Ordre des sections (v1.13.0) : accroche, tarifs, déroulé + lieux, méthode (3 engagements),
+  diagnostic, astuces, Rayon (bandeau compact), questions fréquentes, contact.
+- Ton : le site parle de « Julien » à la 3e personne partout (plus de « je ») ; les SMS
+  pré-écrits vouvoient Julien.
 - `manifest.webmanifest`, `sw.js`, `icones/` — page installable (PWA). Chemins
   relatifs (`./`) pour marcher aussi bien sur baiji.fr/tac-velo/ que sur tac-velo.fr/.
 
