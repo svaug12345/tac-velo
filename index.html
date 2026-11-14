@@ -2,7 +2,7 @@
 <!--
   ============================================================
   tac-velo.fr — TAC Vélo, Julien mécanicien vélo
-  Version 1.10.2
+  Version 1.11.0
   ------------------------------------------------------------
   Site vitrine d'une page pour Julien, mécanicien vélo.
   Devise : « Le vélo doit être un plaisir ».
@@ -31,6 +31,9 @@
     9. Contact
 
   Historique :
+   • v1.11.0 : le domaine tac-velo.fr est en ligne (14/11/2026) : adresse officielle
+              = https://tac-velo.fr/ (canonique, Open Graph, JSON-LD, sitemap,
+              robots) ; baiji.fr/julien/ redirige désormais ici.
    • v1.10.2 : nouveau compte Google Ads (AW-18568190227, conversion « Click to call »
               ayf6COLZ-LUdEJOygJZF) : l'ancien compte (AW-1041764794) était fermé
    • v1.10.1 : balise de vérification Google Search Console (baiji.fr/julien/)
@@ -106,12 +109,12 @@
      « index, follow » = Google peut afficher la page et suivre ses liens. -->
 <meta name="robots" content="index, follow">
 <!-- Adresse « officielle » de la page : évite que Google voie deux sites.
-     ⚠️ PROVISOIRE (v1.10.0) : baiji.fr/julien/, car tac-velo.fr n'est pas encore en ligne.
-     Le jour où tac-velo.fr marche : remplacer « https://baiji.fr/julien/ » par
-     « https://tac-velo.fr/ » dans tout ce bloc <head>, dans sitemap.xml et robots.txt. -->
-<link rel="canonical" href="https://baiji.fr/julien/">
-<!-- Preuve pour Google Search Console (propriété « préfixe d'URL » https://baiji.fr/julien/).
-     À laisser en place : si on l'enlève, Search Console perd l'accès aux statistiques. -->
+     Depuis la v1.11.0 : https://tac-velo.fr/ (l'ancienne adresse baiji.fr/julien/
+     redirige ici). Même adresse dans tout ce bloc <head>, sitemap.xml et robots.txt. -->
+<link rel="canonical" href="https://tac-velo.fr/">
+<!-- Preuve pour Google Search Console (ancienne propriété « préfixe d'URL » https://baiji.fr/julien/).
+     La propriété « domaine » tac-velo.fr est, elle, validée par un enregistrement TXT chez OVH.
+     À laisser en place : sans elle, Search Console perd l'historique de l'ancienne adresse. -->
 <meta name="google-site-verification" content="R2KcW9tMU1KvaQtyXwfGsXmJExKEl_JwNgZjVAlP0ZY">
 <meta name="geo.region" content="FR-91">
 <meta name="geo.placename" content="Gif-sur-Yvette">
@@ -120,10 +123,10 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="TAC Vélo">
-<meta property="og:url" content="https://baiji.fr/julien/">
+<meta property="og:url" content="https://tac-velo.fr/">
 <meta property="og:title" content="TAC Vélo · Réparation vélo à Gif-sur-Yvette">
 <meta property="og:description" content="Julien, mécanicien vélo de quartier : à l'atelier ou à domicile. Il regarde votre vélo, annonce le prix, et c'est vous qui décidez.">
-<meta property="og:image" content="https://baiji.fr/julien/icones/partage.png">
+<meta property="og:image" content="https://tac-velo.fr/icones/partage.png">
 <meta property="og:image:width" content="1600">
 <meta property="og:image:height" content="600">
 <meta property="og:image:alt" content="Logo TAC Vélo">
@@ -138,12 +141,12 @@
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": "https://baiji.fr/julien/#entreprise",
+  "@id": "https://tac-velo.fr/#entreprise",
   "name": "TAC Vélo",
   "description": "Mécanicien vélo de quartier à Gif-sur-Yvette : réparation et révision de vélos (ville, VTT, route, enfant, électrique), à l'atelier ou à domicile. Prix annoncé avant réparation.",
-  "url": "https://baiji.fr/julien/",
-  "logo": "https://baiji.fr/julien/icones/icone-512.png",
-  "image": "https://baiji.fr/julien/icones/partage.png",
+  "url": "https://tac-velo.fr/",
+  "logo": "https://tac-velo.fr/icones/icone-512.png",
+  "image": "https://tac-velo.fr/icones/partage.png",
   "telephone": "+33658236740",
   "email": "julien.vaugoude@gmail.com",
   "founder": { "@type": "Person", "name": "Julien Vaugoude", "jobTitle": "Mécanicien vélo" },
@@ -1016,7 +1019,7 @@ const JULIEN = {
   horaires:   "",            // volontairement vide : Julien ne veut pas afficher d'horaires
   horairesDetail: "Si je ne décroche pas, laissez un message : je rappelle.",
 };
-const VERSION = "1.10.2";    // ← à augmenter à chaque modification (voir l'historique en haut)
+const VERSION = "1.11.0";    // ← à augmenter à chaque modification (voir l'historique en haut)
 
 /* ------------------------------------------------------------
    Pictos (bibliothèque Lucide, licence ISC) — juste le dessin
@@ -1560,7 +1563,7 @@ brancherLiens();
    (seulement au premier appui, pour garder la page légère) ;
    3) on ouvre la conversation avec l'identifiant de l'agent.
    L'agent n'accepte que les appels venant des domaines autorisés
-   côté ElevenLabs (baiji.fr, et tac-velo.fr une fois ajouté) : en
+   côté ElevenLabs (baiji.fr et tac-velo.fr, avec et sans www) : en
    local, depuis un fichier, l'appel sera refusé.
    ⚠️ Ne PAS activer « Require origin header » sur l'agent : sinon
    ElevenLabs refuse tout avec l'erreur 3000 « domaine non autorisé ».

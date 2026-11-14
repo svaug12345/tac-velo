@@ -43,19 +43,17 @@ domaine en ligne.
   identiques, choix gardé 6 mois, lien « Cookies » en pied de page. Ne pas passer en
   « mode avancé » du consentement (pings Google avant accord) sans avis juridique.
 
-## Adresse officielle provisoire (depuis la v1.10.0, 10/11/2026)
-Tant que tac-velo.fr n'est pas en ligne, le site est publié sur **https://baiji.fr/julien/**
-(dossier `julien/` du dépôt `svaug12345.github.io`) et c'est cette adresse qui est déclarée
-partout : `<link rel="canonical">`, `og:url`, `og:image`, JSON-LD (`@id`, `url`, `logo`,
-`image`), `sitemap.xml`, ligne `Sitemap:` de `robots.txt`. Le jour où tac-velo.fr marche :
-tout remettre sur `https://tac-velo.fr/`, puis rediriger baiji.fr/julien/ vers tac-velo.fr
-et déclarer le changement d'adresse dans Search Console. Google Ads (AW-18568190227 depuis la v1.10.2 ; l'ancien compte AW-1041764794 / 110-150-9374 est fermé) et la
+## Adresse officielle : https://tac-velo.fr/ (depuis la v1.11.0, 14/11/2026)
+Déclarée partout : `<link rel="canonical">`, `og:url`, `og:image`, JSON-LD (`@id`, `url`,
+`logo`, `image`), `sitemap.xml`, ligne `Sitemap:` de `robots.txt`. Du 10 au 14/11/2026,
+l'adresse provisoire était https://baiji.fr/julien/ (dossier `julien/` du dépôt
+`svaug12345.github.io`), qui redirige désormais vers tac-velo.fr. Google Ads
+(AW-18568190227 depuis la v1.10.2 ; l'ancien compte AW-1041764794 est fermé) et la
 conversion « Click to call » ne dépendent pas de l'adresse.
 
-## Domaine (OVH, zone DNS de tac-velo.fr)
-Au 07/11/2026, le domaine n'était pas encore enregistré à l'AFNIC (commande OVH en cours).
-Une fois actif :
+## Domaine (OVH, zone DNS de tac-velo.fr) — en ligne depuis le 14/11/2026
 - `tac-velo.fr` : 4 enregistrements A → 185.199.108.153, 185.199.109.153,
   185.199.110.153, 185.199.111.153 (GitHub Pages)
-- `www.tac-velo.fr` : CNAME → `svaug12345.github.io.` (remplace `ghs.googlehosted.com.`)
-- puis fichier `CNAME` (= `tac-velo.fr`) dans le dépôt et « Enforce HTTPS » dans les réglages Pages.
+- `www.tac-velo.fr` : CNAME → `svaug12345.github.io.`
+- TXT `google-site-verification` (propriété Search Console « domaine ») et SPF : à garder.
+- Fichier `CNAME` (= `tac-velo.fr`) dans le dépôt, « Enforce HTTPS » activé dans Pages.
