@@ -17,7 +17,18 @@ domaine en ligne.
 - `manifest.webmanifest`, `sw.js`, `icones/` — page installable (PWA). Chemins
   relatifs (`./`) pour marcher aussi bien sur baiji.fr/tac-velo/ que sur tac-velo.fr/.
 
+- `polices/` — Archivo et Figtree (fichiers variables, sous-ensemble latin, licence OFL),
+  hébergées ici depuis la v1.12.0 : ne pas remettre de lien vers Google Fonts (RGPD).
+- `404.html` — page « introuvable » (liens en `/…`, `noindex`).
+- `icones/partage.png` — image de partage 1200 × 630 ; si on la change, augmenter le
+  `?v=` de `og:image` pour que WhatsApp et Facebook la reprennent.
+
 ## Règles
+- Mentions légales (v1.12.0) : bloc dépliable `#mentions` en pied de page. À mettre à jour
+  en même temps que : l'hébergeur, l'objet `SUIVI` (le bloc « Cookies » ne cite que Google
+  Ads tant que `SUIVI.ga4` est vide ; le texte du bandeau, lui, s'adapte tout seul) et les
+  réglages de Rayon (la ligne sous son bouton et les mentions annoncent « enregistrée,
+  gardée 30 jours »). Restent à préciser par Julien : mention de TVA, médiateur de la consommation.
 - À chaque modification : augmenter `VERSION` et ajouter une ligne à l'historique
   en tête de `index.html` (sinon les téléphones gardent l'ancienne version en cache).
 - Code commenté en français : l'auteur apprend en lisant.

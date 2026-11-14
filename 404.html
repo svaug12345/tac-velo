@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  Page « introuvable » de tac-velo.fr (depuis la v1.12.0).
+  GitHub Pages l'affiche tout seul quand quelqu'un demande une adresse qui
+  n'existe pas (lien mal recopié, vieille adresse…). Elle renvoie vers l'accueil.
+  Les liens commencent par « / » (racine du site) : cette page peut s'afficher
+  depuis n'importe quelle adresse, un lien relatif ne marcherait pas toujours.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- « noindex » : Google ne doit pas proposer cette page dans ses résultats -->
+<meta name="robots" content="noindex">
+<title>Page introuvable · TAC Vélo</title>
+<link rel="icon" href="/icones/icone-192.png" type="image/png">
+<style>
+  /* Mêmes couleurs que le site (crème, encre, jaune), en version minimale */
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; text-align: center;
+    background: #f4efe6; color: #1b1d1a; padding: 24px;
+    font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { font-size: clamp(32px, 8vw, 52px); line-height: 1.05; margin: 0 0 14px; }
+  p { margin: 0 0 26px; color: #5e5b52; }
+  .boutons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  a {
+    display: inline-flex; align-items: center; min-height: 52px; padding: 0 24px;
+    border-radius: 999px; border: 2px solid #1b1d1a; color: #1b1d1a;
+    font-weight: 700; text-decoration: none;
+  }
+  a.principal { background: #f5c21b; box-shadow: 4px 4px 0 #1b1d1a; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #141613; color: #efe9dd; }
+    p { color: #a8a294; }
+    a { border-color: #efe9dd; color: #efe9dd; }
+    a.principal { color: #1b1d1a; border-color: #1b1d1a; box-shadow: 4px 4px 0 #efe9dd; }
+  }
+</style>
+</head>
+<body>
+  <main>
+    <h1>Cette page a déraillé.</h1>
+    <p>L'adresse demandée n'existe pas (ou plus). Tout le site tient sur la page d'accueil.</p>
+    <div class="boutons">
+      <a class="principal" href="/">Retour à l'accueil</a>
+      <a href="tel:+33658236740">Appeler Julien · 06 58 23 67 40</a>
+    </div>
+  </main>
+</body>
+</html>

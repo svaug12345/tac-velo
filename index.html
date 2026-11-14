@@ -2,7 +2,7 @@
 <!--
   ============================================================
   tac-velo.fr — TAC Vélo, Julien mécanicien vélo
-  Version 1.11.0
+  Version 1.12.0
   ------------------------------------------------------------
   Site vitrine d'une page pour Julien, mécanicien vélo.
   Devise : « Le vélo doit être un plaisir ».
@@ -31,6 +31,13 @@
     9. Contact
 
   Historique :
+   • v1.12.0 : mise en règle et petites corrections, sans toucher au contenu.
+              Polices hébergées dans le dépôt (polices/) au lieu de Google Fonts ;
+              bandeau cookies compact, qui ne cite que ce qui est branché (plus de
+              « Google Analytics » tant que SUIVI.ga4 est vide) ; sous le bouton de
+              Rayon, on prévient que la conversation est enregistrée 30 jours ;
+              mentions légales dépliables en pied de page ; image de partage au
+              format 1200 × 630 ; page 404.html.
    • v1.11.0 : le domaine tac-velo.fr est en ligne (14/11/2026) : adresse officielle
               = https://tac-velo.fr/ (canonique, Open Graph, JSON-LD, sitemap,
               robots) ; baiji.fr/julien/ redirige désormais ici.
@@ -126,9 +133,11 @@
 <meta property="og:url" content="https://tac-velo.fr/">
 <meta property="og:title" content="TAC Vélo · Réparation vélo à Gif-sur-Yvette">
 <meta property="og:description" content="Julien, mécanicien vélo de quartier : à l'atelier ou à domicile. Il regarde votre vélo, annonce le prix, et c'est vous qui décidez.">
-<meta property="og:image" content="https://tac-velo.fr/icones/partage.png">
-<meta property="og:image:width" content="1600">
-<meta property="og:image:height" content="600">
+<!-- Image au format standard 1200 × 630 (v1.12.0) : avant, en 1600 × 600, WhatsApp et
+     Facebook la rognaient. « ?v=2 » force ces applis à reprendre la nouvelle image. -->
+<meta property="og:image" content="https://tac-velo.fr/icones/partage.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo TAC Vélo">
 <meta name="twitter:card" content="summary_large_image">
 <!-- Fiche d'identité pour Google (« données structurées », format JSON-LD).
@@ -173,12 +182,27 @@
 <meta name="theme-color" content="#f4efe6">
 <!-- Petit vélo en guise d'icône d'onglet (SVG directement dans l'adresse) -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b1d1a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='24' height='24' rx='6' fill='%23f5c21b' stroke='none'/%3E%3Ccircle cx='7' cy='15' r='3.2'/%3E%3Ccircle cx='17' cy='15' r='3.2'/%3E%3Cpath d='M7 15l4-6h5l1 6M11 9l1 6h5'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Polices : Archivo (titres, en version large et grasse = côté « atelier »)
-     et Figtree (texte, très lisible sur téléphone). -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Figtree:wght@400;500;600;700&display=swap">
+     et Figtree (texte, très lisible sur téléphone).
+     Depuis la v1.12.0 elles sont DANS le dépôt (dossier polices/) et plus chez Google :
+     le navigateur du visiteur ne contacte plus Google sans son accord (RGPD), et la
+     page s'affiche plus vite. « preload » = les télécharger tout de suite, sans attendre
+     que le navigateur découvre qu'il en a besoin. Licence des deux polices : SIL OFL. -->
+<link rel="preload" href="polices/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="polices/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Les deux polices sont « variables » : un seul fichier contient toutes les graisses
+   (et, pour Archivo, toutes les largeurs de 100 % à 125 %).
+   « swap » = le texte s'affiche tout de suite avec une police du téléphone, puis
+   bascule sur la nôtre dès qu'elle est arrivée. */
+@font-face {
+  font-family: "Archivo"; font-style: normal; font-weight: 500 900; font-stretch: 100% 125%;
+  font-display: swap; src: url("polices/archivo.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Figtree"; font-style: normal; font-weight: 400 700;
+  font-display: swap; src: url("polices/figtree.woff2") format("woff2");
+}
 /* ============================================================
    COULEURS — définies une seule fois ici (« tokens »).
    Ambiance : un atelier propre. Papier crème, encre presque
@@ -625,12 +649,24 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 30;
   max-width: 560px; margin-inline: auto;
   background: var(--surface); color: var(--ink); border: 2px solid var(--ink); border-radius: var(--radius);
-  box-shadow: 4px 4px 0 var(--ink); padding: 18px 20px; font-size: 15px; line-height: 1.45;
+  box-shadow: 4px 4px 0 var(--ink); padding: 12px 14px; font-size: 14px; line-height: 1.4;
 }
-.bandeau-cookies p { margin: 0 0 14px; }
+/* Bandeau COMPACT depuis la v1.12.0 : une phrase + deux boutons. Avant, il faisait
+   274 px de haut sur téléphone et cachait le bouton « Appeler Julien ». */
+.bandeau-cookies p { margin: 0 0 10px; }
 .bandeau-cookies .choix { display: flex; gap: 10px; }
-.bandeau-cookies .btn { flex: 1; min-height: 46px; padding: 0 16px; font-size: 14px; }
+.bandeau-cookies .btn { flex: 1; min-height: 42px; padding: 0 14px; font-size: 13px; }
 .lien-cookies { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+
+/* ---------- Mentions légales (pied de page) ----------
+   Un <details> : fermé par défaut, on touche « Mentions légales » pour l'ouvrir. */
+.mentions { flex-basis: 100%; }
+.mentions summary { cursor: pointer; text-decoration: underline; width: fit-content; padding: 6px 0; }
+.mentions dl { margin: 10px 0 0; display: grid; gap: 10px; max-width: 75ch; }
+.mentions dt { font-weight: 700; color: var(--ink); }
+.mentions dd { margin: 2px 0 0; }
+/* Petite ligne d'information sous le bouton de Rayon (enregistrement de la conversation) */
+.info-rayon { margin: 0; font-size: 13px; line-height: 1.45; max-width: 34ch; color: color-mix(in srgb, var(--deep-ink) 70%, transparent); }
 
 /* Apparition douce des blocs au défilement */
 .apparait { opacity: 0; transform: translateY(18px); transition: opacity .6s, transform .6s; }
@@ -871,6 +907,10 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         </button>
         <div class="etat-appel" id="etatAppel" aria-live="polite">Appuyez, puis parlez normalement.<small>Il faudra autoriser le micro.</small></div>
         <button class="raccrocher" id="raccrocher" type="button">Raccrocher</button>
+        <!-- Information obligatoire (RGPD) : on prévient AVANT l'appel que la conversation
+             est enregistrée. À garder d'accord avec les réglages de l'agent sur ElevenLabs
+             (voix enregistrée, 30 jours) et avec les mentions légales du pied de page. -->
+        <p class="info-rayon">La conversation avec Rayon est enregistrée (voix et texte) et gardée 30 jours par ElevenLabs, son prestataire. <a href="#mentions">En savoir plus</a></p>
         <div class="actions apres-appel">
           <a class="btn btn-main js-appel" href="#contact">Appeler Julien</a>
           <span class="pictos-contact" style="color:var(--deep-ink)"></span>
@@ -977,15 +1017,38 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
          pour le référencement local, Google vérifie que ces trois infos concordent. -->
     <span>EI Julien Vaugoude · 9 avenue Lannes, 91190 Gif-sur-Yvette · <a href="tel:+33658236740">06 58 23 67 40</a> · SIRET 990 844 326 00019</span>
     <span><button class="lien-cookies" id="lienCookies" type="button">Cookies</button> · <span id="version"></span></span>
+    <!-- Mentions légales (v1.12.0) : obligatoires pour tout site professionnel
+         (qui édite le site, qui l'héberge, ce qu'on fait des données personnelles).
+         ⚠️ À tenir à jour si on change d'hébergeur, d'outil de mesure ou les réglages de Rayon.
+         Pas encore ici, à faire préciser par Julien : la mention de TVA et le médiateur
+         de la consommation. -->
+    <details class="mentions" id="mentions">
+      <summary>Mentions légales et données personnelles</summary>
+      <dl>
+        <div><dt>Éditeur du site</dt>
+          <dd>TAC Vélo — Julien Vaugoude, entrepreneur individuel (EI), 9 avenue Lannes, 91190 Gif-sur-Yvette. SIRET 990 844 326 00019. Téléphone : 06 58 23 67 40. E-mail : julien.vaugoude@gmail.com. Responsable de la publication : Julien Vaugoude.</dd></div>
+        <div><dt>Hébergeur</dt>
+          <dd>GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</dd></div>
+        <div><dt>Vos données</dt>
+          <dd>Ce site n'a ni formulaire ni compte client. Quand vous appelez ou écrivez à Julien, vos coordonnées servent uniquement à vous répondre et à établir votre facture.</dd></div>
+        <div><dt>Cookies</dt>
+          <dd>Aucun cookie n'est déposé sans votre accord. Si vous acceptez, Google Ads mesure les clics sur « Appeler », pour savoir si la publicité est utile. Votre choix est gardé 6 mois et se change à tout moment avec le lien « Cookies » ci-dessus.</dd></div>
+        <div><dt>Rayon, l'assistant vocal</dt>
+          <dd>Rayon est une intelligence artificielle fournie par ElevenLabs (États-Unis). Si vous lui parlez, la conversation (voix et texte) est enregistrée et gardée 30 jours chez ElevenLabs. Rien ne vous oblige à l'utiliser : un appel, un SMS ou un WhatsApp à Julien marchent très bien.</dd></div>
+        <div><dt>Vos droits</dt>
+          <dd>Vous pouvez demander à consulter, corriger ou effacer les données qui vous concernent en écrivant à julien.vaugoude@gmail.com. Vous pouvez aussi vous adresser à la CNIL (cnil.fr).</dd></div>
+      </dl>
+    </details>
   </div>
 </footer>
 
 <!-- Bandeau cookies : caché au départ, le script l'affiche s'il faut demander l'accord.
      Les deux boutons ont exactement le même style (exigence de la CNIL). -->
 <div class="bandeau-cookies" id="bandeauCookies" role="dialog" aria-labelledby="titreCookies" hidden>
-  <p><b id="titreCookies">Petits cookies, pour savoir si la pub sert à quelque chose.</b><br>
-  Avec votre accord, Google Analytics compte les visites et Google Ads mesure les clics sur « Appeler ».
-  Rien d'autre, et rien n'est revendu. Votre choix est gardé 6 mois ; vous pouvez le changer via « Cookies » en bas de page.</p>
+  <!-- Texte court (v1.12.0). La partie « texteCookies » est écrite par le script selon ce
+       qui est réellement branché dans l'objet SUIVI : on n'annonce pas Google Analytics
+       s'il n'est pas utilisé. Le détail (6 mois, etc.) est dans les mentions légales. -->
+  <p><b id="titreCookies">Cookies :</b> <span id="texteCookies">d'accord pour que Google Ads mesure les clics sur « Appeler » ?</span> Rien n'est revendu.</p>
   <div class="choix">
     <button class="btn btn-ghost" id="cookiesNon" type="button">Refuser</button>
     <button class="btn btn-ghost" id="cookiesOui" type="button">Accepter</button>
@@ -1019,7 +1082,7 @@ const JULIEN = {
   horaires:   "",            // volontairement vide : Julien ne veut pas afficher d'horaires
   horairesDetail: "Si je ne décroche pas, laissez un message : je rappelle.",
 };
-const VERSION = "1.11.0";    // ← à augmenter à chaque modification (voir l'historique en haut)
+const VERSION = "1.12.0";    // ← à augmenter à chaque modification (voir l'historique en haut)
 
 /* ------------------------------------------------------------
    Pictos (bibliothèque Lucide, licence ISC) — juste le dessin
@@ -1734,7 +1797,18 @@ function effacerCookiesGoogle() {
 }
 
 const bandeau = document.getElementById("bandeauCookies");
+// Le texte du bandeau dit exactement ce qui est branché (ni plus, ni moins)
+document.getElementById("texteCookies").textContent =
+  SUIVI.ga4 && SUIVI.ads ? "d'accord pour que Google compte les visites et mesure les clics sur « Appeler » ?"
+  : SUIVI.ga4            ? "d'accord pour que Google Analytics compte les visites ?"
+  :                        "d'accord pour que Google Ads mesure les clics sur « Appeler » ?";
 function afficherBandeau() { bandeau.hidden = false; }
+
+// Les liens « En savoir plus » (href="#mentions") ouvrent le bloc des mentions légales,
+// qui est fermé par défaut : sans ça, on arriverait sur un bloc replié.
+document.addEventListener("click", (e) => {
+  if (e.target.closest('a[href="#mentions"]')) document.getElementById("mentions").open = true;
+});
 document.getElementById("cookiesOui").addEventListener("click", () => {
   ecrireChoix("oui"); bandeau.hidden = true; chargerGoogle();
 });
