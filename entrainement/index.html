@@ -2,7 +2,7 @@
 <!--
   ============================================================
   tac-velo.fr/entrainement/ — « Le vestiaire » : entraînement de Julien
-  Version 1.0.0
+  Version 1.1.0
   ------------------------------------------------------------
   Page CACHÉE (aucun lien depuis le site, « noindex », absente du
   sitemap) pour que Julien s'entraîne à discuter avec des clients,
@@ -37,6 +37,9 @@
 
   Historique :
    • v1.0.0 (25/11/2026) : première version.
+   • v1.1.0 (25/11/2026) : en mode « Je joue le client », plus de choix de personnage
+              ni de relouitude/budget : Julien invente son client en direct (seul le
+              lieu reste à choisir) ; débrief au choix à l'écrit ou à la voix.
   ============================================================
 -->
 <html lang="fr">
@@ -130,6 +133,11 @@ main { padding: 28px 0 60px; }
 .intro { margin-bottom: 28px; }
 .intro p { margin: 12px 0 0; max-width: 60ch; }
 .etape { margin-top: 34px; }
+/* Numéros d'étapes calculés par le navigateur (« compteur CSS ») : les étapes
+   masquées ne comptent pas, donc ça reste 1, 2, 3 quel que soit le mode. */
+#ecranReglages { counter-reset: etape; }
+.etape:not([hidden]) { counter-increment: etape; }
+.etape-num::before { content: counter(etape); }
 .etape-num {
   display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
   background: var(--ink); color: var(--bg); font: 800 15px/1 var(--display); margin-right: 8px;
@@ -193,15 +201,6 @@ input[type="range"] { width: 100%; accent-color: var(--rust); height: 28px; }
 .partie-tete h2 { margin: 0; }
 .chrono { font: 800 15px/1 var(--display); font-variant-numeric: tabular-nums; color: var(--muted); }
 
-/* La fiche du personnage (visible quand Julien joue le client) */
-.fiche {
-  background: var(--deep); color: var(--deep-ink); border-radius: var(--radius);
-  padding: 16px 18px; margin-bottom: 14px;
-}
-.fiche summary { cursor: pointer; font-weight: 700; }
-.fiche dl { margin: 12px 0 0; display: grid; gap: 8px; }
-.fiche dt { font: 700 12px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
-.fiche dd { margin: 2px 0 0; font-size: 15px; }
 .consigne {
   background: var(--surface); border: 2px dashed var(--line); border-radius: 14px;
   padding: 10px 14px; font-size: 15px; margin-bottom: 14px;
@@ -275,7 +274,7 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
     </div>
 
     <div class="etape">
-      <h2><span class="etape-num">1</span>Qui joues-tu ?</h2>
+      <h2><span class="etape-num"></span>Qui joues-tu ?</h2>
       <div class="modes">
         <label class="carte-choix">
           <input type="radio" name="mode" value="julien" checked>
@@ -290,8 +289,8 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
       </div>
     </div>
 
-    <div class="etape">
-      <h2><span class="etape-num">2</span>Le client</h2>
+    <div class="etape" id="etapeClient">
+      <h2><span class="etape-num"></span>Le client</h2>
       <div class="profils" id="listeProfils"><!-- rempli par le script (liste PROFILS) --></div>
       <div class="hasard">
         <button class="btn" type="button" id="boutonHasard">🎲 Client au hasard</button>
@@ -300,15 +299,16 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
     </div>
 
     <div class="etape">
-      <h2><span class="etape-num">3</span>Les réglages</h2>
+      <h2><span class="etape-num"></span>Les réglages</h2>
+      <p class="consigne seulement-client" hidden>Ton client, tu l'inventes en direct : qui tu es, ton vélo, ton problème, ton caractère, ton niveau de relouitude… Le Julien modèle ne sait rien à l'avance. Choisis seulement où se passe la discussion.</p>
       <div class="reglages">
-        <div class="reglage">
+        <div class="reglage seulement-julien">
           <label class="titre" for="relou">Niveau de relouitude : <span id="relouNom"></span></label>
           <input type="range" id="relou" min="1" max="5" step="1" value="3">
           <div class="relou-legende"><span>1 · crème</span><span>5 · infernal</span></div>
           <div class="relou-texte" id="relouTexte"></div>
         </div>
-        <div class="reglage">
+        <div class="reglage seulement-julien">
           <span class="titre" style="font-weight:700;display:block;margin-bottom:8px">Budget du client</span>
           <div class="segments" id="choixBudget"></div>
         </div>
@@ -320,7 +320,7 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
     </div>
 
     <div class="etape">
-      <h2><span class="etape-num">4</span>C'est parti</h2>
+      <h2><span class="etape-num"></span>C'est parti</h2>
       <div class="lancer">
         <button class="btn btn-main" type="button" id="lancerEcrit">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
@@ -345,11 +345,6 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
       <span class="chrono" id="chrono">0:00</span>
     </div>
 
-    <!-- Fiche personnage : seulement quand Julien joue le client -->
-    <details class="fiche" id="fiche" open hidden>
-      <summary>Ta fiche personnage (l'IA ne la voit pas)</summary>
-      <dl id="ficheContenu"></dl>
-    </details>
     <p class="consigne" id="consigne"></p>
 
     <div class="fil" id="fil" aria-live="polite"></div>
@@ -365,7 +360,8 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
     <div class="etat-voix" id="etatVoix" hidden><span class="onde"></span><span id="etatVoixTexte">Connexion…</span></div>
 
     <div class="actions">
-      <button class="btn btn-main" type="button" id="boutonDebrief">📋 Débrief</button>
+      <button class="btn btn-main" type="button" id="boutonDebrief">📋 Débrief écrit</button>
+      <button class="btn btn-sombre" type="button" id="boutonDebriefVoix">🎧 Débrief vocal</button>
       <button class="btn" type="button" id="boutonFin">Terminer</button>
       <button class="btn" type="button" id="boutonRejouer">↺ Changer de partie</button>
       <button class="btn" type="button" id="boutonCopier">Copier</button>
@@ -377,6 +373,8 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
     <span class="kicker">Débrief</span>
     <h2 id="debriefTitre">Le coach relit ta partie…</h2>
     <div class="fil" id="filDebrief" aria-live="polite"></div>
+    <!-- Débrief à la voix : état de l'appel (+ bouton « Raccrocher » plus bas) -->
+    <div class="etat-voix" id="etatVoixDebrief" hidden><span class="onde"></span><span id="etatVoixDebriefTexte">Connexion…</span></div>
     <form class="saisie" id="saisieDebrief">
       <textarea id="messageDebrief" rows="1" placeholder="Une question au coach ?" enterkeyhint="send"></textarea>
       <button class="btn btn-main" type="submit" aria-label="Envoyer">
@@ -384,7 +382,8 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
       </button>
     </form>
     <div class="actions">
-      <button class="btn btn-main" type="button" id="boutonRevanche">↺ Rejouer le même client</button>
+      <button class="btn" type="button" id="boutonRaccrocherCoach" hidden>Raccrocher</button>
+      <button class="btn btn-main" type="button" id="boutonRevanche">↺ Rejouer</button>
       <button class="btn" type="button" id="boutonAutre">Autre partie</button>
       <button class="btn" type="button" id="boutonCopierDebrief">Copier le débrief</button>
     </div>
@@ -397,10 +396,11 @@ footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
 /* ============================================================
    RÉGLAGES GÉNÉRAUX
    ============================================================ */
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const AGENT_ENTRAINEMENT = "agent_8801m8a1yayhen595kw6qhp7zn65";   // « TAC Vélo – Entraînement de Julien » sur ElevenLabs
 const SDK = "https://cdn.jsdelivr.net/npm/@elevenlabs/client@1.32.1/+esm";   // même version figée que Rayon
 const VOIX_JULIEN = "kENkNtk0xyzG09WW40xE";   // « Marcel », voix du Julien modèle (chaleureuse, « le gars d'à côté »)
+const VOIX_COACH = "kKgyAHjGAbeWHCNd7qoC";    // « Augustin », voix du coach pour le débrief vocal
 const DUREE_MAX = 600;                        // 10 minutes : la limite réglée sur l'agent
 
 /* Les tarifs que l'IA doit connaître.
@@ -641,15 +641,21 @@ Si le client écrit un message qui commence par [DÉBRIEF] ou [STOP], sors de to
 }
 
 /* Le coach du débrief : il relit la conversation et répond ensuite aux questions */
-function promptDebrief(mode, p, r, transcription) {
+function promptDebrief(mode, p, r, transcription, oral) {
+  // Ce qu'on sait de la partie. En mode « client », Julien a inventé son client en direct :
+  // le coach le découvre en lisant la conversation.
+  const laPartie = mode === "julien"
+    ? `- Mode : Julien jouait SON PROPRE RÔLE ; l'IA jouait le client.
+- Client : ${p.nom}, ${p.age} ans. Vélo : ${p.velo} Demande : ${p.demande} Caractère : ${p.caractere} Objection : ${p.objection}
+- Le secret du client : ${p.secret}
+- Relouitude : ${r.relou}/5 (${RELOU[r.relou].nom}) ; budget : ${BUDGETS[r.budget].nom} ; situation : ${CANAUX[r.canal].nom}.`
+    : `- Mode : Julien jouait UN CLIENT qu'il a inventé en direct ; l'IA jouait un « Julien modèle » dont il veut s'inspirer.
+- Situation : ${CANAUX[r.canal].nom}. Le profil du client n'était pas fixé à l'avance : déduis-le de la conversation.`;
   const commun = `# Ton rôle
 Tu es le coach de Julien, mécanicien vélo (TAC Vélo). Il vient de faire une partie d'entraînement en jeu de rôle avec une IA, et il te demande un débrief. Tu le tutoies, tu es bienveillant, franc, concret et précis : pas de généralités, cite ses vraies phrases. Pense que Julien est un excellent mécano qui veut progresser dans la relation client.
 
 # La partie
-- Mode : ${mode === "julien" ? "Julien jouait SON PROPRE RÔLE ; l'IA jouait le client." : "Julien jouait LE CLIENT ; l'IA jouait un « Julien modèle » dont il veut s'inspirer."}
-- Client : ${p.nom}, ${p.age} ans. Vélo : ${p.velo} Demande : ${p.demande} Caractère : ${p.caractere} Objection : ${p.objection}
-- Le secret du client : ${p.secret}
-- Relouitude : ${r.relou}/5 (${RELOU[r.relou].nom}) ; budget : ${BUDGETS[r.budget].nom} ; situation : ${CANAUX[r.canal].nom}.
+${laPartie}
 
 ${CONTEXTE_TAC}
 
@@ -665,17 +671,23 @@ ${transcription || "(La conversation est vide : Julien n'a presque rien dit. Dis
 5. **Ce que pensait vraiment le client** : son ressenti, et son secret (Julien l'a-t-il trouvé ? quelle question l'aurait fait sortir ?).
 6. **Le conseil pour la prochaine fois** : une seule chose, facile à retenir.` : `
 # Ton premier message : le débrief, dans cet ordre
-1. **En bref** : comment le « Julien modèle » s'en est sorti face à ce client, en une ou deux phrases.
+1. **En bref** : quel client Julien a joué (type, humeur, niveau de difficulté) et comment le « Julien modèle » s'en est sorti, en deux phrases.
 2. **Les moments clés** : trois à cinq moments de la conversation ; pour chacun, ce que le Julien modèle a dit (cite-le) et POURQUOI ça marche.
 3. **Les techniques à retenir** : trois à cinq techniques réutilisables, chacune avec un nom court et une phrase type prête à l'emploi.
-4. **Ce qui aurait pu être encore mieux** : sois honnête si le Julien modèle a raté quelque chose (le secret du client, une question, un prix).
-5. **Le client que tu as joué** : un mot sur le jeu de Julien dans le rôle du client (crédible ? quel type de client c'était ?) et ce que ce client nous apprend.
+4. **Ce qui aurait pu être encore mieux** : sois honnête si le Julien modèle a raté quelque chose (une question, un prix, une piste).
+5. **Le client que tu as joué** : un mot sur le jeu de Julien dans le rôle du client (crédible ? difficile ?) et ce que ce type de client nous apprend.
 6. **Les phrases à garder** : une courte liste de trois à cinq phrases à recopier dans son carnet.`;
-  return commun + plan + `
+  // Mise en forme : à l'écrit, titres en gras et listes ; à l'oral, aucune mise en forme
+  const forme = oral ? `
+
+# Tu parles à voix haute (débrief vocal)
+Le débrief est écouté, pas lu : aucune mise en forme (pas d'astérisques, pas de listes, pas de numéros), des phrases courtes et naturelles, comme un coach au bord du terrain. Garde le même plan, en version parlée d'environ une minute et demie : annonce simplement chaque partie (« Ce qui a marché… », « À travailler… »). Les phrases à reprendre, dis-les clairement, avec une petite pause avant et après. Puis demande-lui s'il a des questions.
+Ensuite, Julien te pose ses questions à voix haute : réponds court (deux ou trois phrases), concret, toujours en t'appuyant sur la conversation ci-dessus. Tu ne rejoues pas la partie ; s'il veut rejouer, dis-lui d'utiliser le bouton « Rejouer ».` : `
 
 # Mise en forme
 Écrit, pas oral. Titres en **gras**, listes simples avec des tirets, phrases courtes. Pas plus d'une page de téléphone et demie.
-Ensuite, Julien peut te poser des questions (« et là, j'aurais dû dire quoi ? ») : réponds court et concret, toujours en t'appuyant sur la conversation ci-dessus. Tu ne rejoues pas la partie ; s'il veut rejouer, dis-lui d'utiliser le bouton « Rejouer le même client ».`;
+Ensuite, Julien peut te poser des questions (« et là, j'aurais dû dire quoi ? ») : réponds court et concret, toujours en t'appuyant sur la conversation ci-dessus. Tu ne rejoues pas la partie ; s'il veut rejouer, dis-lui d'utiliser le bouton « Rejouer ».`;
+  return commun + plan + forme;
 }
 
 /* ============================================================
@@ -709,17 +721,29 @@ function majRelou() {
 $("relou").addEventListener("input", majRelou);
 majRelou();
 
+// Selon le mode, on montre ou on cache le choix du client et ses réglages :
+// en « Je joue le client », c'est Julien qui invente son personnage en direct.
+function majMode() {
+  const client = valeur("mode") === "client";
+  $("etapeClient").hidden = client;
+  document.querySelectorAll(".seulement-julien").forEach((el) => (el.hidden = client));
+  document.querySelectorAll(".seulement-client").forEach((el) => (el.hidden = !client));
+}
+document.querySelectorAll('input[name="mode"]').forEach((el) => el.addEventListener("change", majMode));
+
 // Lire les choix de l'écran
 const valeur = (nom) => document.querySelector(`input[name="${nom}"]:checked`).value;
 function lireReglages() {
   return {
     mode: valeur("mode"),
-    profil: PROFILS.find((p) => p.id === valeur("profil")),
+    // pas de profil quand Julien joue le client : il l'invente lui-même
+    profil: valeur("mode") === "julien" ? PROFILS.find((p) => p.id === valeur("profil")) : null,
     relou: Number($("relou").value),
     budget: valeur("budget"),
     canal: valeur("canal"),
   };
 }
+majMode();   // état de départ (au chargement, « Je suis Julien » est coché)
 const auHasard = (liste) => liste[Math.floor(Math.random() * liste.length)];
 function cocher(nom, val) { document.querySelector(`input[name="${nom}"][value="${val}"]`).checked = true; }
 
@@ -811,34 +835,19 @@ function demarrerChrono() {
 
 // Noms affichés au-dessus des bulles
 const nomIA = () => partie.mode === "julien" ? partie.profil.nom.split(" ")[0] : "Julien (modèle)";
-const nomMoi = () => partie.mode === "julien" ? "Toi (Julien)" : `Toi (${partie.profil.nom.split(" ")[0]})`;
+const nomMoi = () => partie.mode === "julien" ? "Toi (Julien)" : "Toi (client)";
 
 function preparerEcranPartie(voix) {
-  const p = partie.profil;
+  const p = partie.profil;   // null quand Julien joue le client
   $("fil").innerHTML = "";
   journal = [];
-  $("partieKicker").textContent = `${CANAUX[partie.canal].nom} · relouitude ${partie.relou}/5 · budget ${BUDGETS[partie.budget].nom.toLowerCase()}`;
-  // En mode surprise, on cache le nom du client à Julien (il le découvrira)
+  $("partieKicker").textContent = partie.mode === "julien"
+    ? `${CANAUX[partie.canal].nom} · relouitude ${partie.relou}/5 · budget ${BUDGETS[partie.budget].nom.toLowerCase()}`
+    : `${CANAUX[partie.canal].nom} · face au Julien modèle`;
+  // En mode surprise, on cache le nom du client à Julien (il le découvrira au débrief)
   $("partieTitre").textContent = partie.mode === "julien"
     ? (surprise ? "Un client mystère" : `Face à ${p.nom}`)
-    : `Tu joues ${p.nom}`;
-  // La fiche personnage n'est utile que si Julien joue le client
-  $("fiche").hidden = partie.mode !== "client";
-  if (partie.mode === "client") {
-    $("ficheContenu").innerHTML = "";
-    const lignes = [
-      ["Qui", `${p.nom}, ${p.age} ans`], ["Le vélo", p.velo], ["Ce que tu veux", p.demande],
-      ["Ton caractère", p.caractere], ["Ta réplique fétiche", p.objection],
-      ["Ton secret (ne le donne que si on te pose la bonne question)", p.secret],
-      ["Joue-le à", `${partie.relou}/5 · ${RELOU[partie.relou].nom} : ${RELOU[partie.relou].texte}`],
-      ["Ton budget", BUDGETS[partie.budget].texte],
-    ];
-    for (const [t, d] of lignes) {
-      const dt = document.createElement("dt"); dt.textContent = t;
-      const dd = document.createElement("dd"); dd.textContent = d;
-      $("ficheContenu").append(dt, dd);
-    }
-  }
+    : "Tu joues le client";
   // La consigne pour démarrer
   const qui = partie.mode === "julien";
   const c = partie.canal;
@@ -847,10 +856,9 @@ function preparerEcranPartie(voix) {
          whatsapp: "Un nouveau client t'écrit sur WhatsApp : commence par un petit « Bonjour ! » et laisse-le expliquer.",
          atelier: "Un client entre à l'atelier avec son vélo : accueille-le !",
          domicile: "Tu sonnes chez le client pour l'intervention à domicile : présente-toi !" })[c]
-    : (OUVERTURE_JULIEN[c] ? "Julien parle en premier ; ensuite, à toi de jouer le client." : "Écris le premier message WhatsApp de ton client à Julien.");
+    : (OUVERTURE_JULIEN[c] ? "Julien parle en premier ; ensuite, joue le client que tu veux, comme tu veux." : "Écris le premier message WhatsApp de ton client à Julien.");
   $("saisie").hidden = voix;
   $("etatVoix").hidden = !voix;
-  $("boutonDebrief").disabled = false;
   $("boutonFin").disabled = false;
 }
 
@@ -993,59 +1001,82 @@ $("boutonCopier").addEventListener("click", (e) => copier(transcription(), e.cur
 let debriefConv = null;
 let journalDebrief = [];
 
-$("boutonDebrief").addEventListener("click", async () => {
-  if (conversation) { try { await conversation.endSession(); } catch (e) {} }
-  lancerDebrief();
-});
+// Deux boutons : débrief écrit (on lit, on tape) ou vocal (le coach parle, on lui répond au micro)
+async function arreterPartie() { if (conversation) { try { await conversation.endSession(); } catch (e) {} } }
+$("boutonDebrief").addEventListener("click", async () => { await arreterPartie(); lancerDebrief(false); });
+$("boutonDebriefVoix").addEventListener("click", async () => { await arreterPartie(); lancerDebrief(true); });
 
-async function lancerDebrief() {
+let animationCoach = null;
+// Même petit rond animé que pendant la partie, mais pour la voix du coach
+function animerOndeCoach() {
+  if (!debriefConv) return;
+  try { $("etatVoixDebrief").style.setProperty("--niveau", Math.min(1, (debriefConv.getOutputVolume?.() || 0) * 2.5).toFixed(2)); } catch (e) {}
+  animationCoach = requestAnimationFrame(animerOndeCoach);
+}
+const etatCoach = (t) => ($("etatVoixDebriefTexte").textContent = t);
+// Titre du débrief (en mode surprise, on révèle enfin le client mystère)
+const titreDebrief = () => surprise && partie.profil ? `Le client mystère était ${partie.profil.nom}` : "Ton débrief";
+
+async function lancerDebrief(oral) {
   afficher("ecranDebrief");
   $("filDebrief").innerHTML = "";
   journalDebrief = [];
-  $("debriefTitre").textContent = surprise ? `Le client mystère était ${partie.profil.nom}` : "Le coach relit ta partie…";
-  indicateur("filDebrief", true, "Le coach relit la conversation");
+  $("debriefTitre").textContent = surprise && partie.profil ? titreDebrief() : "Le coach relit ta partie…";
+  // À l'écrit : zone de saisie. À la voix : état de l'appel + bouton « Raccrocher ».
+  $("saisieDebrief").hidden = oral;
+  $("etatVoixDebrief").hidden = !oral;
+  $("boutonRaccrocherCoach").hidden = !oral;
+  if (oral) {
+    etatCoach("Le coach relit ta partie…");
+    try { await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { return lancerDebrief(false); }   // micro refusé : on bascule à l'écrit
+  } else indicateur("filDebrief", true, "Le coach relit la conversation");
   try {
     const Conversation = await chargerSDK();
     debriefConv = await Conversation.startSession({
       agentId: AGENT_ENTRAINEMENT,
-      textOnly: true,
+      textOnly: !oral,
       overrides: {
-        agent: { prompt: { prompt: promptDebrief(partie.mode, partie.profil, partie, transcription()) }, firstMessage: "" },
-        conversation: { textOnly: true },
+        agent: { prompt: { prompt: promptDebrief(partie.mode, partie.profil, partie, transcription(), oral) }, firstMessage: "" },
+        tts: { voiceId: VOIX_COACH },
+        conversation: { textOnly: !oral },
       },
       onMessage: ({ message, source }) => {
-        if (source !== "ai" || !message) return;
-        indicateur("filDebrief", false);
-        journalDebrief.push("Coach : " + message);
-        bulle("filDebrief", "ia", message, "Coach", true);
-        $("debriefTitre").textContent = surprise ? `Le client mystère était ${partie.profil.nom}` : "Ton débrief";
+        if (!message) return;
+        if (source === "ai") {
+          indicateur("filDebrief", false);
+          journalDebrief.push("Coach : " + message);
+          // Mise en forme (gras, listes) même à l'oral, au cas où le coach en glisse un peu
+          bulle("filDebrief", "ia", message, "Coach", true);
+          $("debriefTitre").textContent = titreDebrief();
+        } else if (oral && !message.startsWith("Fais-moi le débrief")) {
+          // Ce que Julien dit au micro s'affiche aussi (à l'écrit, c'est fait à l'envoi)
+          journalDebrief.push("Julien : " + message);
+          bulle("filDebrief", "moi", message, "Toi");
+        }
+      },
+      onModeChange: ({ mode }) => {
+        if (oral && debriefConv) etatCoach(mode === "speaking" ? "Le coach parle… (tu peux le couper)" : "À toi : pose ta question à voix haute.");
       },
       onDisconnect: () => {
         debriefConv = null;
+        cancelAnimationFrame(animationCoach);
         indicateur("filDebrief", false);
-        bulle("filDebrief", "systeme", "Le coach a raccroché (10 minutes maximum).");
+        if (oral) { etatCoach("Débrief terminé."); $("boutonRaccrocherCoach").hidden = true; }
+        bulle("filDebrief", "systeme", "Le coach a raccroché.");
       },
       onError: (m) => { console.error("Débrief :", m); },
     });
     // La ligne est ouverte (le await est fini) : on demande le débrief
     debriefConv.sendUserMessage("Fais-moi le débrief de cette partie.");
+    if (oral) animerOndeCoach();
   } catch (e) {
     console.error(e);
     indicateur("filDebrief", false);
     bulle("filDebrief", "systeme", "Le coach ne répond pas. Réessaie dans un moment.");
   }
 }
-
-$("saisieDebrief").addEventListener("submit", (ev) => {
-  ev.preventDefault();
-  const texte = $("messageDebrief").value.trim();
-  if (!texte || !debriefConv) return;
-  journalDebrief.push("Julien : " + texte);
-  bulle("filDebrief", "moi", texte, "Toi");
-  debriefConv.sendUserMessage(texte);
-  $("messageDebrief").value = ""; ajusterHauteur($("messageDebrief"));
-  indicateur("filDebrief", true, "Le coach réfléchit");
-});
+$("boutonRaccrocherCoach").addEventListener("click", () => quitterDebrief());
 
 async function quitterDebrief() { if (debriefConv) { try { await debriefConv.endSession(); } catch (e) {} } }
 $("boutonRevanche").addEventListener("click", async () => {

@@ -33,7 +33,8 @@ domaine en ligne.
   `?v=` de `og:image` pour que WhatsApp et Facebook la reprennent.
 
 - `entrainement/index.html` — « Le vestiaire », page CACHÉE d'entraînement de Julien
-  (jeu de rôle avec des clients, 10 profils, niveau de relouitude, débrief). Aucun lien
+  (jeu de rôle avec des clients, 10 profils, niveau de relouitude, débrief écrit ou vocal ;
+  en mode « Je joue le client », pas de profil : Julien invente son client en direct). Aucun lien
   depuis le site, `noindex`, absente du sitemap ; adresse : https://tac-velo.fr/entrainement/.
   Sa propre `VERSION` (en-tête + script). Agent ElevenLabs dédié
   `agent_8801m8a1yayhen595kw6qhp7zn65` (« TAC Vélo – Entraînement de Julien »), cerveau
