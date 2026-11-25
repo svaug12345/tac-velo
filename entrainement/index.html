@@ -1,0 +1,1065 @@
+<!doctype html>
+<!--
+  ============================================================
+  tac-velo.fr/entrainement/ — « Le vestiaire » : entraînement de Julien
+  Version 1.0.0
+  ------------------------------------------------------------
+  Page CACHÉE (aucun lien depuis le site, « noindex », absente du
+  sitemap) pour que Julien s'entraîne à discuter avec des clients,
+  en jeu de rôle, avec une IA :
+    • mode « Je suis Julien » : l'IA joue un client, Julien répond ;
+    • mode « Je joue le client » : l'IA joue un Julien modèle, dont
+      les réponses servent d'exemple ; Julien joue le client.
+  10 profils de clients, et des réglages : niveau de relouitude (1 à 5),
+  budget, canal (téléphone, WhatsApp, atelier, domicile).
+  À l'écrit (on lit et on tape) ou à la voix (micro).
+  Bouton « Débrief » : arrête la partie et ouvre un coach (toujours à
+  l'écrit) qui relit TOUTE la conversation, et à qui on peut poser des
+  questions ensuite.
+
+  ⚙️ OÙ MODIFIER QUOI :
+     • les 10 clients : la liste PROFILS (script en bas) ;
+     • les niveaux de relouitude, budgets, canaux : RELOU, BUDGETS, CANAUX ;
+     • les tarifs que l'IA connaît : TARIFS_TEXTE (⚠️ à garder identiques
+       à ceux de la page d'accueil, voir CLAUDE.md) ;
+     • ce que l'IA doit faire : les fonctions promptClient(), promptJulien(),
+       promptDebrief().
+
+  Comment ça marche, techniquement :
+  Un seul agent ElevenLabs (AGENT_ENTRAINEMENT) sert pour tout. Au moment
+  de lancer une partie, la page lui envoie un texte de consignes complet
+  (« prompt »), la voix du personnage et le mode écrit/voix : ce sont des
+  « overrides », autorisés dans les réglages de sécurité de l'agent
+  (prompt, premier message, voix, mode texte). Le cerveau de l'agent est
+  Claude Sonnet 5.5, réglé côté ElevenLabs.
+  L'agent n'accepte que les pages de tac-velo.fr et baiji.fr : en local,
+  depuis un fichier, la connexion sera refusée.
+
+  Historique :
+   • v1.0.0 (25/11/2026) : première version.
+  ============================================================
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Page cachée : on demande aux moteurs de ne pas l'indexer ni suivre ses liens,
+     et on ne transmet pas son adresse aux sites qu'on ouvrirait depuis ici. -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Le vestiaire · entraînement · TAC Vélo</title>
+<meta name="theme-color" content="#f5c21b">
+<link rel="icon" href="../icones/icone-192.png">
+<link rel="preload" href="../polices/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../polices/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Mêmes polices que le site (hébergées dans le dépôt, pas chez Google) */
+@font-face {
+  font-family: "Archivo"; font-style: normal; font-weight: 500 900; font-stretch: 100% 125%;
+  font-display: swap; src: url("../polices/archivo.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Figtree"; font-style: normal; font-weight: 400 700;
+  font-display: swap; src: url("../polices/figtree.woff2") format("woff2");
+}
+/* ---------- Couleurs TAC Vélo (copiées de la page d'accueil) ---------- */
+:root {
+  --bg: #f4efe6; --surface: #fffdf8; --ink: #1b1d1a; --muted: #5e5b52; --line: #ddd5c6;
+  --accent: #f5c21b; --accent-ink: #1b1d1a; --rust: #b8461b; --deep: #1f2a24; --deep-ink: #f4efe6;
+  --ok: #2f7a4f;
+  --display: "Archivo", "Arial Black", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 18px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141613; --surface: #1d201c; --ink: #efe9dd; --muted: #a8a294;
+    --line: #333830; --rust: #e0774a; --deep: #0d110e; --deep-ink: #efe9dd; --ok: #6fcf97;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.5 var(--body); -webkit-font-smoothing: antialiased;
+}
+.wrap { width: min(880px, 100% - 32px); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--display); font-stretch: 112%; line-height: 1.05; margin: 0; }
+h1 { font-size: clamp(32px, 8vw, 52px); font-weight: 900; }
+h2 { font-size: clamp(22px, 5vw, 30px); font-weight: 850; margin-bottom: 14px; }
+.kicker {
+  font: 700 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--rust); display: block; margin-bottom: 10px;
+}
+.muted { color: var(--muted); }
+button { font: inherit; color: inherit; }
+
+/* ---------- En-tête ---------- */
+header { border-bottom: 2px solid var(--ink); background: var(--bg); position: sticky; top: 0; z-index: 5; }
+header .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 12px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-pastille {
+  width: 38px; height: 38px; border-radius: 11px; background: var(--accent);
+  display: grid; place-items: center; border: 2px solid var(--ink);
+}
+.logo-pastille svg { width: 24px; height: 24px; color: #1b1d1a; }
+.logo b { font: 900 20px/1 var(--display); font-stretch: 120%; display: block; }
+.logo small { font-size: 13px; color: var(--muted); }
+.badge {
+  font: 700 11px/1 var(--body); letter-spacing: .12em; text-transform: uppercase;
+  padding: 7px 10px; border: 2px dashed var(--rust); color: var(--rust); border-radius: 999px;
+}
+
+/* ---------- Boutons (même style que le site : ombre « tampon ») ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 50px; padding: 0 22px; border-radius: 999px; border: 2px solid var(--ink);
+  font: 700 14px/1 var(--body); letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer; background: transparent; transition: transform .15s, box-shadow .15s;
+}
+.btn-main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent-ink); box-shadow: 4px 4px 0 var(--ink); }
+.btn-main:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.btn-sombre { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
+.btn svg { width: 20px; height: 20px; }
+
+/* ---------- Écran de réglage ---------- */
+main { padding: 28px 0 60px; }
+.intro { margin-bottom: 28px; }
+.intro p { margin: 12px 0 0; max-width: 60ch; }
+.etape { margin-top: 34px; }
+.etape-num {
+  display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--ink); color: var(--bg); font: 800 15px/1 var(--display); margin-right: 8px;
+  vertical-align: 3px;
+}
+
+/* Choix du mode : deux grosses cartes (ce sont des boutons radio déguisés) */
+.modes { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.carte-choix {
+  position: relative; display: block; cursor: pointer;
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 18px 18px 16px; transition: border-color .15s, transform .15s;
+}
+.carte-choix:hover { transform: translateY(-2px); }
+.carte-choix input { position: absolute; opacity: 0; pointer-events: none; }
+.carte-choix:has(input:checked) { border-color: var(--ink); box-shadow: 4px 4px 0 var(--accent); }
+.carte-choix:has(input:focus-visible) { outline: 3px solid var(--rust); outline-offset: 2px; }
+.carte-choix strong { font: 850 19px/1.15 var(--display); font-stretch: 110%; display: block; margin-bottom: 6px; }
+.carte-choix span { font-size: 15px; color: var(--muted); }
+
+/* Les 10 profils */
+.profils { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.profil { padding: 14px; display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: start; }
+.avatar {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: #1b1d1a; border: 2px solid var(--ink);
+  font: 900 16px/1 var(--display); font-stretch: 115%;
+}
+.profil strong { font-size: 16px; margin-bottom: 2px; }
+.profil span { font-size: 14px; line-height: 1.35; display: block; }
+/* Plus précis que la règle juste au-dessus : la pastille garde ses initiales centrées */
+.profil span.avatar { display: grid; font-size: 16px; line-height: 1; }
+.hasard { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Réglages */
+.reglages { display: grid; gap: 20px; }
+.reglage label.titre { font-weight: 700; display: block; margin-bottom: 8px; }
+input[type="range"] { width: 100%; accent-color: var(--rust); height: 28px; }
+.relou-legende { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.relou-texte {
+  margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: var(--surface);
+  border-left: 5px solid var(--rust); font-size: 15px;
+}
+.segments { display: flex; flex-wrap: wrap; gap: 8px; }
+.segments label {
+  cursor: pointer; padding: 10px 16px; border: 2px solid var(--line); border-radius: 999px;
+  background: var(--surface); font-size: 15px; font-weight: 600;
+}
+.segments input { position: absolute; opacity: 0; pointer-events: none; }
+.segments label:has(input:checked) { border-color: var(--ink); background: var(--accent); color: #1b1d1a; }
+.segments label:has(input:focus-visible) { outline: 3px solid var(--rust); outline-offset: 2px; }
+
+.lancer { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+
+/* ---------- Écran de jeu ---------- */
+.partie-tete {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 14px;
+}
+.partie-tete h2 { margin: 0; }
+.chrono { font: 800 15px/1 var(--display); font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* La fiche du personnage (visible quand Julien joue le client) */
+.fiche {
+  background: var(--deep); color: var(--deep-ink); border-radius: var(--radius);
+  padding: 16px 18px; margin-bottom: 14px;
+}
+.fiche summary { cursor: pointer; font-weight: 700; }
+.fiche dl { margin: 12px 0 0; display: grid; gap: 8px; }
+.fiche dt { font: 700 12px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.fiche dd { margin: 2px 0 0; font-size: 15px; }
+.consigne {
+  background: var(--surface); border: 2px dashed var(--line); border-radius: 14px;
+  padding: 10px 14px; font-size: 15px; margin-bottom: 14px;
+}
+
+/* Le fil de la conversation */
+.fil {
+  background: var(--surface); border: 2px solid var(--ink); border-radius: var(--radius);
+  padding: 16px; min-height: 260px; max-height: 58vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.bulle { max-width: 85%; padding: 10px 14px; border-radius: 16px; white-space: pre-wrap; }
+.bulle small { display: block; font: 700 11px/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; opacity: .7; margin-bottom: 3px; }
+.bulle.ia { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.bulle.moi { align-self: flex-end; background: var(--accent); color: #1b1d1a; border-bottom-right-radius: 4px; }
+.bulle.systeme { align-self: center; background: none; color: var(--muted); font-size: 14px; text-align: center; }
+.tape { align-self: flex-start; color: var(--muted); font-size: 14px; }
+.tape i { animation: clignote 1.2s infinite; font-style: normal; }
+@keyframes clignote { 50% { opacity: .2; } }
+
+.saisie { display: flex; gap: 10px; margin-top: 12px; }
+.saisie textarea {
+  flex: 1; resize: none; min-height: 52px; max-height: 140px; padding: 13px 16px;
+  border: 2px solid var(--ink); border-radius: 16px; background: var(--surface); color: var(--ink);
+  font: 16px/1.4 var(--body);   /* 16 px : évite le zoom automatique sur iPhone */
+}
+.saisie .btn { min-width: 52px; padding: 0 16px; }
+.etat-voix {
+  margin-top: 12px; padding: 14px; text-align: center; border-radius: 16px;
+  background: var(--surface); border: 2px solid var(--line); font-weight: 600;
+}
+.etat-voix .onde {
+  display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--rust);
+  margin-right: 8px; vertical-align: -1px; transform: scale(calc(.6 + var(--niveau, 0)));
+  transition: transform .08s;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+/* Le débrief (mise en page sobre, façon carnet d'atelier) */
+.debrief .fil { border-color: var(--rust); }
+.debrief .bulle.ia { max-width: 100%; background: var(--surface); border: none; padding: 4px 2px; }
+.bulle.ia strong { font-weight: 800; }
+.bulle.ia ul, .bulle.ia ol { margin: 4px 0; padding-left: 22px; white-space: normal; }
+
+footer { padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo">
+      <span class="logo-pastille">
+        <!-- picto clé à molette (Lucide « wrench », licence ISC) -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg>
+      </span>
+      <span><b>TAC Vélo</b><small>Le vestiaire</small></span>
+    </div>
+    <span class="badge">Entraînement</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ ÉCRAN 1 : RÉGLAGES ============ -->
+  <section id="ecranReglages">
+    <div class="intro">
+      <span class="kicker">Réservé à Julien</span>
+      <h1>On s'échauffe avant le vrai client.</h1>
+      <p>Des clients plus vrais que nature, du plus adorable au plus pénible. Tu peux répondre en tant que Julien, ou jouer le client et regarder comment un « Julien modèle » s'y prendrait. À la fin, demande ton débrief.</p>
+    </div>
+
+    <div class="etape">
+      <h2><span class="etape-num">1</span>Qui joues-tu ?</h2>
+      <div class="modes">
+        <label class="carte-choix">
+          <input type="radio" name="mode" value="julien" checked>
+          <strong>Je suis Julien</strong>
+          <span>L'IA joue le client. Tu réponds comme à l'atelier ou au téléphone.</span>
+        </label>
+        <label class="carte-choix">
+          <input type="radio" name="mode" value="client">
+          <strong>Je joue le client</strong>
+          <span>L'IA joue un Julien modèle. Mets-le en difficulté et pique-lui ses meilleures phrases.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="etape">
+      <h2><span class="etape-num">2</span>Le client</h2>
+      <div class="profils" id="listeProfils"><!-- rempli par le script (liste PROFILS) --></div>
+      <div class="hasard">
+        <button class="btn" type="button" id="boutonHasard">🎲 Client au hasard</button>
+        <button class="btn" type="button" id="boutonSurprise">🎁 Tout au hasard (surprise)</button>
+      </div>
+    </div>
+
+    <div class="etape">
+      <h2><span class="etape-num">3</span>Les réglages</h2>
+      <div class="reglages">
+        <div class="reglage">
+          <label class="titre" for="relou">Niveau de relouitude : <span id="relouNom"></span></label>
+          <input type="range" id="relou" min="1" max="5" step="1" value="3">
+          <div class="relou-legende"><span>1 · crème</span><span>5 · infernal</span></div>
+          <div class="relou-texte" id="relouTexte"></div>
+        </div>
+        <div class="reglage">
+          <span class="titre" style="font-weight:700;display:block;margin-bottom:8px">Budget du client</span>
+          <div class="segments" id="choixBudget"></div>
+        </div>
+        <div class="reglage">
+          <span class="titre" style="font-weight:700;display:block;margin-bottom:8px">Où se passe la discussion ?</span>
+          <div class="segments" id="choixCanal"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="etape">
+      <h2><span class="etape-num">4</span>C'est parti</h2>
+      <div class="lancer">
+        <button class="btn btn-main" type="button" id="lancerEcrit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          À l'écrit
+        </button>
+        <button class="btn btn-sombre" type="button" id="lancerVoix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          À la voix
+        </button>
+      </div>
+      <p class="note">À l'écrit, tu peux relire chaque réponse tranquillement. À la voix, il faudra autoriser le micro ; tout s'affiche aussi à l'écrit. Une partie dure 10 minutes au maximum. Les conversations sont gardées 30 jours chez ElevenLabs.</p>
+    </div>
+  </section>
+
+  <!-- ============ ÉCRAN 2 : LA PARTIE ============ -->
+  <section id="ecranPartie" hidden>
+    <div class="partie-tete">
+      <div>
+        <span class="kicker" id="partieKicker"></span>
+        <h2 id="partieTitre"></h2>
+      </div>
+      <span class="chrono" id="chrono">0:00</span>
+    </div>
+
+    <!-- Fiche personnage : seulement quand Julien joue le client -->
+    <details class="fiche" id="fiche" open hidden>
+      <summary>Ta fiche personnage (l'IA ne la voit pas)</summary>
+      <dl id="ficheContenu"></dl>
+    </details>
+    <p class="consigne" id="consigne"></p>
+
+    <div class="fil" id="fil" aria-live="polite"></div>
+
+    <!-- Saisie à l'écrit -->
+    <form class="saisie" id="saisie" hidden>
+      <textarea id="message" rows="1" placeholder="Ta réponse…" enterkeyhint="send"></textarea>
+      <button class="btn btn-main" type="submit" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+    </form>
+    <!-- État à la voix -->
+    <div class="etat-voix" id="etatVoix" hidden><span class="onde"></span><span id="etatVoixTexte">Connexion…</span></div>
+
+    <div class="actions">
+      <button class="btn btn-main" type="button" id="boutonDebrief">📋 Débrief</button>
+      <button class="btn" type="button" id="boutonFin">Terminer</button>
+      <button class="btn" type="button" id="boutonRejouer">↺ Changer de partie</button>
+      <button class="btn" type="button" id="boutonCopier">Copier</button>
+    </div>
+  </section>
+
+  <!-- ============ ÉCRAN 3 : LE DÉBRIEF ============ -->
+  <section id="ecranDebrief" class="debrief" hidden>
+    <span class="kicker">Débrief</span>
+    <h2 id="debriefTitre">Le coach relit ta partie…</h2>
+    <div class="fil" id="filDebrief" aria-live="polite"></div>
+    <form class="saisie" id="saisieDebrief">
+      <textarea id="messageDebrief" rows="1" placeholder="Une question au coach ?" enterkeyhint="send"></textarea>
+      <button class="btn btn-main" type="submit" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+    </form>
+    <div class="actions">
+      <button class="btn btn-main" type="button" id="boutonRevanche">↺ Rejouer le même client</button>
+      <button class="btn" type="button" id="boutonAutre">Autre partie</button>
+      <button class="btn" type="button" id="boutonCopierDebrief">Copier le débrief</button>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">Page d'entraînement privée de TAC Vélo · <span id="versionPage"></span> · Personnages fictifs joués par une IA (ElevenLabs + Claude).</footer>
+
+<script type="module">
+/* ============================================================
+   RÉGLAGES GÉNÉRAUX
+   ============================================================ */
+const VERSION = "1.0.0";
+const AGENT_ENTRAINEMENT = "agent_8801m8a1yayhen595kw6qhp7zn65";   // « TAC Vélo – Entraînement de Julien » sur ElevenLabs
+const SDK = "https://cdn.jsdelivr.net/npm/@elevenlabs/client@1.32.1/+esm";   // même version figée que Rayon
+const VOIX_JULIEN = "kENkNtk0xyzG09WW40xE";   // « Marcel », voix du Julien modèle (chaleureuse, « le gars d'à côté »)
+const DUREE_MAX = 600;                        // 10 minutes : la limite réglée sur l'agent
+
+/* Les tarifs que l'IA doit connaître.
+   ⚠️ COPIE de la page d'accueil et du prompt de Rayon : si un prix change, le changer ici aussi. */
+const TARIFS_TEXTE = `Réparations (main-d'œuvre, tarifs indicatifs pour un vélo classique) :
+crevaison 12 € ; pose d'un pneu 12 € ; réglage des freins 10 € ; patins ou plaquettes 12 € par frein ;
+réglage des vitesses 12 € ; pose de chaîne 10 € ; dévoilage d'une roue 15 € ; rayon cassé 15 € ;
+révision complète 55 € ; révision de la partie vélo d'un vélo électrique 70 € ;
+remise en état d'un vélo d'enfant 25 € ; réglage de position 10 € (offert avec une révision).
+Les pièces s'ajoutent seulement s'il faut en changer, et toujours après accord.
+Nettoyage (produits compris) : « Coup de frais » 15 € ; « Transmission à neuf » 30 € ; « Grand lavage » 30 € ;
+« Grand soin » 50 € ; supplément VTT tout-suspendu +5 € (+10 € sur le Grand soin).
+La révision complète comprend déjà le nettoyage de la transmission.`;
+
+/* Ce qu'il faut savoir sur TAC Vélo (sert aux trois rôles de l'IA) */
+const CONTEXTE_TAC = `# TAC Vélo (contexte réel)
+Julien est mécanicien vélo, entreprise individuelle « TAC Vélo », à Gif-sur-Yvette (site tac-velo.fr). Devise : « Le vélo doit être un plaisir ».
+Zone : Gif-sur-Yvette, Gometz-le-Châtel, Gometz-la-Ville, Bures-sur-Yvette.
+Deux façons de faire, au choix du client : à son atelier de quartier (9 avenue Lannes, Gif-sur-Yvette, sur rendez-vous, pas de comptoir ni de file d'attente, on confie son vélo à celui qui le répare), ou à domicile (Julien vient avec ses outils ; le déplacement éventuel est compris dans le prix total annoncé avant).
+Contact : téléphone, SMS ou WhatsApp au 06 58 23 67 40.
+Ses engagements « sans coût caché » : il regarde d'abord le vélo, annonce le prix TOTAL (main-d'œuvre, pièces, déplacement éventuel) avant de commencer, et le client décide ; aucun supplément sans accord (s'il découvre autre chose, il appelle d'abord) ; diagnostic et conseils gratuits (si on ne fait pas réparer, on ne paie rien) ; facture détaillée et pièces usées rendues.
+Son site aide d'abord les gens à se dépanner eux-mêmes (diagnostic guidé, astuces) ; on appelle Julien quand c'est trop compliqué ou pour le confort.
+${TARIFS_TEXTE}
+On ne connaît pas à l'avance le prix des pièces, ni les délais ou disponibilités de Julien.`;
+
+/* ============================================================
+   LES 10 CLIENTS
+   Chaque profil : nom, âge, vélo, ce qu'il veut, son caractère,
+   son objection favorite, et un SECRET qu'il ne révèle que si
+   Julien pose la bonne question (c'est ce qui rend l'exercice
+   intéressant). « voix » = voix ElevenLabs du personnage.
+   ============================================================ */
+const PROFILS = [
+  {
+    id: "josiane", nom: "Josiane Lefèvre", age: 74, initiales: "JL", genre: "f",
+    voix: "4jbnh9nx4NsNChRZm8PY",   // Juliette
+    resume: "Retraitée bavarde, vélo électrique, méfiante sur les prix.",
+    velo: "Vélo électrique de ville acheté en grande surface il y a 3 ans, jamais révisé.",
+    demande: "Les freins font un bruit de crécelle et le vélo « tire » quand elle freine. Elle veut savoir combien ça va coûter avant même qu'on le regarde.",
+    caractere: "Gentille mais très bavarde : parle de ses petits-enfants, de son ancien vélo, du marché du samedi. Méfiante avec l'argent (« on m'a déjà eue une fois »). A peur qu'on lui « vende des choses ».",
+    objection: "« Et on ne va pas me rajouter des choses derrière mon dos ? »",
+    secret: "Elle a fait une petite chute le mois dernier à cause de ses freins, et elle a un peu peur de reprendre le vélo. Elle ne le dit que si Julien lui demande comment elle se sent sur son vélo ou s'il s'est passé quelque chose.",
+  },
+  {
+    id: "thomas", nom: "Thomas Garnier", age: 38, initiales: "TG", genre: "m",
+    voix: "fMikjf4u2qBd4gPl7yuw",   // Fabien
+    resume: "Cadre pressé, vélotaf quotidien, veut tout pour hier.",
+    velo: "Vélo de ville haut de gamme, 11 vitesses, utilisé tous les jours pour aller à la gare RER.",
+    demande: "Les vitesses sautent et la chaîne grince. Il le veut réparé POUR DEMAIN MATIN 7 h, sinon il ne peut pas aller travailler.",
+    caractere: "Efficace, poli mais sec, coupe la parole, parle vite, regarde l'heure. Déteste les longues explications : veut un prix, un créneau, et c'est tout.",
+    objection: "« Je n'ai pas le temps, vous pouvez venir ce soir ? Sinon je vais ailleurs. »",
+    secret: "Il a un deuxième vélo (un vieux VTC) qui peut le dépanner quelques jours : l'urgence n'est pas si absolue. Il ne le dit que si Julien lui demande s'il a une solution de secours.",
+  },
+  {
+    id: "kevin", nom: "Kévin Morel", age: 20, initiales: "KM", genre: "m",
+    voix: "43TArLZXN5r3L8mJ6AGR",   // Quentin
+    resume: "Étudiant fauché, crève sans arrêt, cherche le prix d'ami.",
+    velo: "Vieux vélo de course acier récupéré chez son oncle, pneus d'origine.",
+    demande: "Troisième crevaison en un mois à l'arrière. Il voudrait que ce soit « pas cher, genre 5 balles ».",
+    caractere: "Cool, tutoie spontanément, un peu je-m'en-foutiste, négocie tout (« vous faites pas un prix étudiant ? »). Sympathique au fond.",
+    objection: "« 12 € pour une rustine ? Je peux le faire moi-même avec un tuto, non ? »",
+    secret: "Le fond de jante est abîmé et un rayon dépasse : c'est ça qui perce la chambre à chaque fois (il ne le sait pas). Il dit seulement que le trou est « toujours du côté intérieur » si Julien demande où se trouve le trou.",
+  },
+  {
+    id: "sophie", nom: "Sophie Martin", age: 36, initiales: "SM", genre: "f",
+    voix: "NEjemlRxgWmL5ZGJetsB",   // Claire
+    resume: "Maman inquiète, vélo cargo électrique avec deux enfants.",
+    velo: "Vélo cargo électrique (biporteur), freins hydrauliques, transporte ses deux enfants à l'école tous les matins.",
+    demande: "Le frein avant est « mou », le levier va presque jusqu'au guidon. Elle a encore fait l'école ce matin avec.",
+    caractere: "Stressée, pressée, culpabilise, pose plein de questions de sécurité, parle vite. Très reconnaissante si on la rassure avec des faits.",
+    objection: "« Je ne peux pas me passer du vélo, comment je fais pour l'école demain ? »",
+    secret: "Elle a un peu de liquide qui coule près de l'étrier de frein avant (elle a cru que c'était de l'eau). Elle ne le mentionne que si Julien demande s'il y a une trace, une fuite ou quelque chose de mouillé près du frein.",
+  },
+  {
+    id: "marc", nom: "Marc Dubreuil", age: 52, initiales: "MD", genre: "m",
+    voix: "Xvw4I6fTZZ7CThO9BzTN",   // Philippe
+    resume: "Cycliste sportif en carbone, croit tout savoir.",
+    velo: "Vélo de route carbone à 6 000 €, transmission électronique, roues carbone.",
+    demande: "Un « clic » au pédalier en danseuse. Il a déjà son idée (le boîtier de pédalier) et veut juste que Julien « fasse ce qu'il dit ».",
+    caractere: "Expert autoproclamé, jargon technique, teste Julien avec des questions pointues, cite des marques, un peu condescendant. Respecte ceux qui lui tiennent tête avec des arguments.",
+    objection: "« Vous avez déjà travaillé sur du carbone ? Vous avez une clé dynamométrique au moins ? »",
+    secret: "Le « clic » vient en fait de son blocage de roue arrière mal serré après un changement de roue qu'il a fait lui-même ; il ne l'avoue que si Julien demande s'il a démonté ou changé quelque chose récemment.",
+  },
+  {
+    id: "gerard", nom: "Gérard Bonnet", age: 66, initiales: "GB", genre: "m",
+    voix: "gP52hjM48hyNoVCbizxO",   // Alexandre
+    resume: "Client mécontent : « depuis votre réparation, ça ne va plus ».",
+    velo: "VTC classique. Julien lui a réglé les vitesses il y a dix jours (12 €).",
+    demande: "Les vitesses sautent à nouveau et il exige que ce soit refait gratuitement, et vite.",
+    caractere: "Vexé, persuadé d'avoir été mal servi, parle de « principe », menace de laisser un avis sur Google. Se calme si on l'écoute vraiment et si on propose une solution concrète.",
+    objection: "« J'ai payé, ça doit marcher. Je vais mettre un avis, moi. »",
+    secret: "Il a fait tomber le vélo dans son garage la semaine dernière, côté dérailleur. Il ne l'admet que si Julien lui demande calmement s'il y a eu une chute ou un choc depuis la réparation (s'il est agressé, il nie).",
+  },
+  {
+    id: "nadia", nom: "Nadia Benali", age: 29, initiales: "NB", genre: "f",
+    voix: "d3AXX0BlgJHYFCuH9X88",   // Emilie
+    resume: "Hésitante : veut acheter un vélo d'occasion, demande conseil.",
+    velo: "Pas encore de vélo : elle hésite à acheter un vélo de ville d'occasion à 250 € sur Leboncoin.",
+    demande: "Elle voudrait que Julien lui dise si c'est une bonne affaire, voire vienne le voir avec elle. Ne sait pas trop ce qu'elle veut demander exactement.",
+    caractere: "Gentille, peu sûre d'elle, ne connaît rien au vélo, pose des questions floues, a peur de déranger et de passer pour une idiote. S'ouvre si on la met à l'aise.",
+    objection: "« Je ne veux pas vous déranger pour rien… c'est peut-être pas votre métier ? »",
+    secret: "Le vendeur refuse qu'elle essaie le vélo avant de payer. Elle ne le dit que si Julien lui demande si elle a pu l'essayer ou comment se passe la vente.",
+  },
+  {
+    id: "paul", nom: "Paul Lemoine", age: 45, initiales: "PL", genre: "m",
+    voix: "iMij959nvbX8f2SxyrvX",   // Gabin
+    resume: "Bricoleur qui a tout démonté et n'ose pas l'avouer.",
+    velo: "VTT semi-rigide de 2018.",
+    demande: "Il a voulu changer lui-même son câble de dérailleur avec un tuto YouTube ; maintenant plus rien ne marche et il reste des pièces sur l'établi.",
+    caractere: "Gêné, minimise (« j'ai juste touché un petit truc »), un peu de fierté blessée, plaisante pour cacher sa gêne. A peur qu'on se moque de lui.",
+    objection: "« Ça va pas coûter plus cher parce que j'y ai touché, quand même ? »",
+    secret: "Il a aussi desserré la vis de butée du dérailleur et perdu une petite vis. Il le dit seulement si Julien lui demande de décrire exactement ce qu'il a démonté, sans le juger.",
+  },
+  {
+    id: "isabelle", nom: "Isabelle Roux", age: 42, initiales: "IR", genre: "f",
+    voix: "YxrwjAKoUKULGd0g8K9Y",   // Lucie
+    resume: "Mère de famille, trois vélos d'enfants, veut un prix de gros.",
+    velo: "Trois vélos d'enfants (6, 9 et 12 ans) qui ont passé l'hiver dehors, plus le sien.",
+    demande: "Tout remettre en état avant les vacances de Pâques. Veut un « forfait famille » et une remise parce qu'il y a quatre vélos.",
+    caractere: "Organisée, aimable, mais calculatrice ; compare, fait des additions à voix haute, cherche la bonne affaire. Fidèle si elle se sent bien traitée.",
+    objection: "« Quatre vélos d'un coup, vous me faites bien un geste ? »",
+    secret: "Elle travaille dans une association de parents d'élèves et pourrait recommander Julien à toute l'école (bouche-à-oreille). Elle ne le dit que si Julien lui demande comment elle l'a connu ou s'intéresse à elle.",
+  },
+  {
+    id: "hugo", nom: "Hugo Ferrand", age: 27, initiales: "HF", genre: "m",
+    voix: "YQtnmWKnwPI7Z6URWJSj",   // James
+    resume: "Vététiste qui compare avec la grande enseigne et traque les coûts cachés.",
+    velo: "VTT tout-suspendu, suspensions avant et arrière, boue séchée partout.",
+    demande: "Une révision complète et un nettoyage. Il a un devis d'une grande enseigne et veut que Julien fasse mieux.",
+    caractere: "Malin, direct, précis sur les chiffres, demande tout par écrit, cherche la petite ligne cachée. Pas méchant : il veut juste ne pas se faire avoir.",
+    objection: "« Chez la grande enseigne c'est 49 € la révision. Pourquoi je paierais plus ? »",
+    secret: "Le devis de l'enseigne n'inclut ni le nettoyage ni le réglage des suspensions, et le délai là-bas est de trois semaines. Il ne le reconnaît que si Julien lui demande ce que comprend exactement leur devis et quel est leur délai.",
+  },
+];
+
+/* Les 5 niveaux de « relouitude » : le nom affiché, et ce que l'IA doit faire */
+const RELOU = {
+  1: { nom: "Crème", texte: "Adorable : fait confiance, écoute, dit merci. Pose seulement les questions normales." },
+  2: { nom: "Sympa", texte: "Cordial, une ou deux questions sur le prix, accepte facilement une explication claire." },
+  3: { nom: "Normal", texte: "Un client ordinaire : hésite, veut comprendre, compare un peu, sort une vraie objection." },
+  4: { nom: "Pénible", texte: "Coupe la parole, doute de tout, négocie, revient sur ses objections, digresse, demande des garanties." },
+  5: { nom: "Infernal", texte: "De mauvaise foi, insiste, menace d'aller ailleurs ou d'un mauvais avis, veut tout gratuit et tout de suite. Reste crédible, sans insultes." },
+};
+const BUDGETS = {
+  serre:  { nom: "Serré", texte: "Le client a peu d'argent et le dit : chaque euro compte pour lui." },
+  normal: { nom: "Normal", texte: "Le client est prêt à payer un prix juste s'il comprend ce qu'il paie." },
+  large:  { nom: "Pas un souci", texte: "L'argent n'est pas un problème pour le client ; il veut surtout du sérieux, de la qualité et du confort." },
+};
+const CANAUX = {
+  telephone: { nom: "Au téléphone", texte: "Un appel téléphonique : le client appelle Julien. On ne se voit pas, Julien ne peut pas voir le vélo." },
+  whatsapp:  { nom: "Par WhatsApp", texte: "Une conversation WhatsApp : messages écrits courts, façon téléphone (le client peut parler d'une photo qu'il « envoie », en la décrivant)." },
+  atelier:   { nom: "À l'atelier", texte: "En face à face, à l'atelier de quartier de Julien (9 avenue Lannes) : le client est venu avec son vélo." },
+  domicile:  { nom: "À domicile", texte: "Julien est chez le client, devant le vélo, pour une intervention à domicile." },
+};
+
+/* Premier message du « Julien modèle » selon le canal (quand Julien joue le client).
+   Vide = c'est le client qui parle en premier. */
+const OUVERTURE_JULIEN = {
+  telephone: "TAC Vélo, Julien, bonjour !",
+  whatsapp: "",
+  atelier: "Bonjour, bienvenue ! Moi c'est Julien. Qu'est-ce qui amène votre vélo ?",
+  domicile: "Bonjour ! Julien, de TAC Vélo. Alors, montrez-moi ce vélo ?",
+};
+
+/* ============================================================
+   LES CONSIGNES ENVOYÉES À L'IA (« prompts »)
+   ============================================================ */
+
+/* Mode « Je suis Julien » : l'IA joue le client */
+function promptClient(p, r) {
+  return `# Le jeu
+Tu joues un CLIENT de TAC Vélo, dans un jeu de rôle d'entraînement. En face de toi, c'est le vrai Julien, le mécanicien, qui s'entraîne à parler aux clients. Tu restes dans ton personnage du début à la fin : tu es un être humain, jamais une IA, tu ne donnes aucun conseil à Julien, tu ne commentes pas le jeu.
+
+# Ton personnage
+- Nom : ${p.nom}, ${p.age} ans (${p.genre === "f" ? "une femme" : "un homme"}).
+- Son vélo : ${p.velo}
+- Ce qu'il veut : ${p.demande}
+- Caractère : ${p.caractere}
+- Objection favorite (à placer au bon moment, avec tes mots) : ${p.objection}
+- SECRET : ${p.secret} Ne le révèle JAMAIS spontanément : seulement si Julien pose la bonne question.
+Invente les petits détails réalistes qui manquent (rue de Gif, métier, souvenirs…) et reste cohérent ensuite.
+
+# Les réglages de la partie
+- Niveau de relouitude : ${r.relou}/5 (« ${RELOU[r.relou].nom} ») : ${RELOU[r.relou].texte}
+  Adapte TOUT le personnage à ce niveau : à 1, même son objection est dite gentiment ; à 5, il pousse loin, mais reste crédible.
+- Budget : ${BUDGETS[r.budget].texte}
+- Situation : ${CANAUX[r.canal].texte}
+
+# Comment tu réagis (c'est le cœur de l'exercice)
+- Tu réagis à la QUALITÉ de ce que dit Julien. S'il écoute, reformule, pose de bonnes questions, est clair et honnête sur le prix, propose une suite concrète : tu te détends, tu fais de plus en plus confiance, et tu peux finir par accepter (rendez-vous, dépôt à l'atelier, venue à domicile).
+- S'il est vague, technique sans expliquer, pressant, s'il te coupe sans t'écouter, s'il annonce un prix faux ou promet ce qu'il ne peut pas tenir : tu te braques, tu doutes, tu peux dire que tu vas réfléchir ou aller ailleurs.
+- Tu connais seulement ce qu'un client sait : tu as peut-être vu quelques prix sur le site tac-velo.fr, sans plus. Tu ne fais pas le diagnostic à la place de Julien.
+- Pas de monologue : une ou deux idées par réplique, comme dans une vraie conversation. Laisse Julien mener.
+- C'est Julien qui commence (il décroche, t'accueille ou t'écrit). Ensuite tu expliques ton problème avec tes mots, pas tout d'un coup.
+- Quand la discussion arrive à sa fin naturelle (accord, refus, « je vais réfléchir »), tu conclus en une phrase, comme un vrai client.
+
+# Style
+Français parlé, naturel : phrases courtes, hésitations de temps en temps (« euh », « enfin… »), émotions du personnage. ${r.canal === "whatsapp" ? "Comme c'est WhatsApp, écris de courts messages, avec le style d'un vrai SMS (sans fautes volontaires excessives)." : "C'est une conversation orale : ne fais pas de listes, pas de mise en forme."} Pas d'émojis à l'oral.
+
+${CONTEXTE_TAC}
+(Ces informations sont pour que tu restes réaliste ; ton personnage ne les connaît PAS par cœur.)
+
+# Règle de sortie
+Si Julien écrit un message qui commence par [DÉBRIEF] ou [STOP], sors de ton rôle et réponds simplement : « Partie terminée, le débrief arrive ! »`;
+}
+
+/* Mode « Je joue le client » : l'IA joue un Julien modèle */
+function promptJulien(r) {
+  return `# Le jeu
+Tu joues JULIEN, le mécanicien de TAC Vélo, dans un jeu de rôle d'entraînement. Le vrai Julien joue un client en face de toi, pour voir comment s'y prendrait la meilleure version de lui-même : tes réponses doivent être EXEMPLAIRES, des phrases qu'il pourra reprendre telles quelles. Reste dans ton rôle du début à la fin : tu es Julien, un humain ; ne commente jamais le jeu. Tu ne connais pas le client à l'avance : découvre-le.
+
+# La situation
+${CANAUX[r.canal].texte}
+
+# Qui est Julien
+Un mécano sympa, simple et franc, pas un commercial. Il vouvoie (il tutoie seulement si le client tutoie d'abord et que c'est naturel). Il parle comme un artisan de quartier : clair, chaleureux, rassurant, avec une pointe d'humour quand ça détend.
+
+# La méthode d'un Julien modèle
+1. Accueillir : bonjour, présentation simple, laisser le client parler.
+2. Écouter et reformuler : « Si je comprends bien, … ». Montrer qu'on a compris l'inquiétude, pas seulement la panne.
+3. Diagnostiquer par questions, une à la fois : quel vélo, quel symptôme exactement, depuis quand, après quoi (chute, démontage, pluie), quel usage, quelle urgence, y a-t-il une solution de secours. Les bonnes questions font souvent apparaître l'information décisive.
+4. Sécurité d'abord : si c'est dangereux (freins, fuite, cadre, roue qui a du jeu), le dire clairement et conseiller de ne pas rouler avec, sans affoler.
+5. Le prix, honnêtement : donner le tarif indicatif de la grille ci-dessous pour la main-d'œuvre, expliquer que les pièces s'ajoutent seulement si besoin et après accord, et rappeler le principe : « Je regarde d'abord, je vous annonce le prix total, et c'est vous qui décidez. » Ne JAMAIS inventer un prix de pièce, un délai garanti ou un autre tarif. Si on ne sait pas encore : « je vous le confirme dès que j'ai vu le vélo ».
+6. Proposer la suite concrète : atelier (9 avenue Lannes, sur rendez-vous) ou domicile ; demander les disponibilités du client et dire que Julien lui confirme le créneau par SMS. Ne pas promettre un horaire précis que tu ne peux pas garantir, mais chercher une vraie solution (dépannage provisoire, conseil pour patienter, ordre de priorité).
+7. Objections : rester calme ; d'abord reconnaître (« je comprends »), puis expliquer la valeur (diagnostic gratuit, prix total annoncé avant, pas de coût caché, atelier de quartier, domicile possible, pièces usées rendues), sans jamais dénigrer un concurrent. Pas de rabais par principe ; mais on peut proposer des alternatives honnêtes (ce que le client peut faire lui-même, la prestation juste nécessaire, regrouper plusieurs vélos dans un seul rendez-vous). Si le client a raison, le reconnaître.
+8. Client mécontent : écouter jusqu'au bout, ne pas se justifier tout de suite, s'excuser sans se rabaisser, chercher la cause avec des questions calmes, proposer de revoir le vélo gratuitement pour vérifier ; si c'est lié à sa réparation, il la reprend sans frais.
+9. Client qui veut se débrouiller seul : l'encourager, donner un conseil simple et sûr, et rappeler qu'il est là si besoin. C'est l'esprit TAC Vélo.
+10. Conclure : résumer ce qui est convenu, la prochaine étape, et remercier. Finir sur une note humaine (« Le vélo doit être un plaisir ! » si ça vient naturellement, pas à chaque fois).
+
+# Style
+Réponses COURTES (deux ou trois phrases, une question à la fois), naturelles, à l'oral. ${r.canal === "whatsapp" ? "Comme c'est WhatsApp, écris de courts messages clairs, sans listes." : "Pas de listes, pas de mise en forme."}
+Si le client devient insultant ou totalement de mauvaise foi, reste poli et ferme, et sache mettre fin calmement.
+
+${CONTEXTE_TAC}
+
+# Règle de sortie
+Si le client écrit un message qui commence par [DÉBRIEF] ou [STOP], sors de ton rôle et réponds simplement : « Partie terminée, le débrief arrive ! »`;
+}
+
+/* Le coach du débrief : il relit la conversation et répond ensuite aux questions */
+function promptDebrief(mode, p, r, transcription) {
+  const commun = `# Ton rôle
+Tu es le coach de Julien, mécanicien vélo (TAC Vélo). Il vient de faire une partie d'entraînement en jeu de rôle avec une IA, et il te demande un débrief. Tu le tutoies, tu es bienveillant, franc, concret et précis : pas de généralités, cite ses vraies phrases. Pense que Julien est un excellent mécano qui veut progresser dans la relation client.
+
+# La partie
+- Mode : ${mode === "julien" ? "Julien jouait SON PROPRE RÔLE ; l'IA jouait le client." : "Julien jouait LE CLIENT ; l'IA jouait un « Julien modèle » dont il veut s'inspirer."}
+- Client : ${p.nom}, ${p.age} ans. Vélo : ${p.velo} Demande : ${p.demande} Caractère : ${p.caractere} Objection : ${p.objection}
+- Le secret du client : ${p.secret}
+- Relouitude : ${r.relou}/5 (${RELOU[r.relou].nom}) ; budget : ${BUDGETS[r.budget].nom} ; situation : ${CANAUX[r.canal].nom}.
+
+${CONTEXTE_TAC}
+
+# La conversation complète
+${transcription || "(La conversation est vide : Julien n'a presque rien dit. Dis-le-lui gentiment et propose-lui de relancer une partie.)"}
+`;
+  const plan = mode === "julien" ? `
+# Ton premier message : le débrief, dans cet ordre
+1. **Verdict** : une phrase, et une note sur 10 (sois juste : 10 est rare).
+2. **Ce qui a marché** : deux ou trois points, en citant ses phrases.
+3. **À travailler** : deux ou trois points ; pour chacun, la phrase exacte qu'il aurait pu dire à la place.
+4. **Les engagements TAC Vélo** : a-t-il donné des prix conformes à la grille (signale toute erreur ou invention) ? A-t-il annoncé le principe « je regarde, j'annonce le prix total, vous décidez » ? A-t-il proposé atelier ou domicile et une suite concrète ? A-t-il pensé à la sécurité si besoin ?
+5. **Ce que pensait vraiment le client** : son ressenti, et son secret (Julien l'a-t-il trouvé ? quelle question l'aurait fait sortir ?).
+6. **Le conseil pour la prochaine fois** : une seule chose, facile à retenir.` : `
+# Ton premier message : le débrief, dans cet ordre
+1. **En bref** : comment le « Julien modèle » s'en est sorti face à ce client, en une ou deux phrases.
+2. **Les moments clés** : trois à cinq moments de la conversation ; pour chacun, ce que le Julien modèle a dit (cite-le) et POURQUOI ça marche.
+3. **Les techniques à retenir** : trois à cinq techniques réutilisables, chacune avec un nom court et une phrase type prête à l'emploi.
+4. **Ce qui aurait pu être encore mieux** : sois honnête si le Julien modèle a raté quelque chose (le secret du client, une question, un prix).
+5. **Le client que tu as joué** : un mot sur le jeu de Julien dans le rôle du client (crédible ? quel type de client c'était ?) et ce que ce client nous apprend.
+6. **Les phrases à garder** : une courte liste de trois à cinq phrases à recopier dans son carnet.`;
+  return commun + plan + `
+
+# Mise en forme
+Écrit, pas oral. Titres en **gras**, listes simples avec des tirets, phrases courtes. Pas plus d'une page de téléphone et demie.
+Ensuite, Julien peut te poser des questions (« et là, j'aurais dû dire quoi ? ») : réponds court et concret, toujours en t'appuyant sur la conversation ci-dessus. Tu ne rejoues pas la partie ; s'il veut rejouer, dis-lui d'utiliser le bouton « Rejouer le même client ».`;
+}
+
+/* ============================================================
+   ÉCRAN DE RÉGLAGE : on construit les choix
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+document.getElementById("versionPage").textContent = "v" + VERSION;
+
+// Les cartes des 10 clients (boutons radio)
+$("listeProfils").innerHTML = PROFILS.map((p, i) => `
+  <label class="carte-choix profil">
+    <input type="radio" name="profil" value="${p.id}" ${i === 0 ? "checked" : ""}>
+    <span class="avatar" aria-hidden="true">${p.initiales}</span>
+    <span><strong>${p.nom}, ${p.age} ans</strong><span>${p.resume}</span></span>
+  </label>`).join("");
+
+// Petits boutons « segments » (budget, canal) fabriqués à partir des listes
+function segments(conteneur, nom, liste, choisi) {
+  $(conteneur).innerHTML = Object.entries(liste).map(([cle, v]) => `
+    <label><input type="radio" name="${nom}" value="${cle}" ${cle === choisi ? "checked" : ""}>${v.nom}</label>`).join("");
+}
+segments("choixBudget", "budget", BUDGETS, "normal");
+segments("choixCanal", "canal", CANAUX, "telephone");
+
+// Le curseur de relouitude : on affiche le nom et la description du niveau
+function majRelou() {
+  const n = $("relou").value;
+  $("relouNom").textContent = `${n}/5 · ${RELOU[n].nom}`;
+  $("relouTexte").textContent = RELOU[n].texte;
+}
+$("relou").addEventListener("input", majRelou);
+majRelou();
+
+// Lire les choix de l'écran
+const valeur = (nom) => document.querySelector(`input[name="${nom}"]:checked`).value;
+function lireReglages() {
+  return {
+    mode: valeur("mode"),
+    profil: PROFILS.find((p) => p.id === valeur("profil")),
+    relou: Number($("relou").value),
+    budget: valeur("budget"),
+    canal: valeur("canal"),
+  };
+}
+const auHasard = (liste) => liste[Math.floor(Math.random() * liste.length)];
+function cocher(nom, val) { document.querySelector(`input[name="${nom}"][value="${val}"]`).checked = true; }
+
+$("boutonHasard").addEventListener("click", () => {
+  cocher("profil", auHasard(PROFILS).id);
+  document.querySelector('input[name="profil"]:checked').closest("label").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+// « Surprise » : client, relouitude, budget et canal au hasard, et on ne montre pas le profil
+// avant de lancer (pour que Julien découvre le client comme dans la vraie vie).
+let surprise = false;
+$("boutonSurprise").addEventListener("click", () => {
+  cocher("profil", auHasard(PROFILS).id);
+  $("relou").value = 1 + Math.floor(Math.random() * 5); majRelou();
+  cocher("budget", auHasard(Object.keys(BUDGETS)));
+  cocher("canal", auHasard(Object.keys(CANAUX)));
+  surprise = true;
+  lancer(false);   // à l'écrit par défaut
+});
+
+/* ============================================================
+   LA PARTIE
+   ============================================================ */
+let conversation = null;     // la conversation ElevenLabs en cours (null = aucune)
+let partie = null;           // les réglages de la partie en cours
+let journal = [];            // la conversation, ligne par ligne : { qui: "ia"|"moi", texte }
+let debut = 0, minuterie = null, animation = null;
+let SDKCharge = null;        // le SDK n'est chargé qu'une fois, au premier lancement
+
+async function chargerSDK() {
+  if (!SDKCharge) SDKCharge = import(SDK);
+  return (await SDKCharge).Conversation;
+}
+
+function afficher(ecran) {
+  for (const id of ["ecranReglages", "ecranPartie", "ecranDebrief"]) $(id).hidden = id !== ecran;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* Ajoute une bulle dans un fil (fil de la partie ou du débrief).
+   On utilise textContent (et pas innerHTML) pour le texte venant de l'IA :
+   aucun code ne peut s'y glisser. Seul le débrief passe par miseEnForme(). */
+function bulle(fil, qui, texte, etiquette, formate = false) {
+  const div = document.createElement("div");
+  div.className = "bulle " + qui;
+  if (etiquette) { const s = document.createElement("small"); s.textContent = etiquette; div.append(s); }
+  if (formate) { const c = document.createElement("div"); c.innerHTML = miseEnForme(texte); div.append(c); }
+  else div.append(document.createTextNode(texte));
+  $(fil).append(div);
+  $(fil).scrollTop = $(fil).scrollHeight;
+  return div;
+}
+
+/* Mini « Markdown » pour le débrief : **gras** et listes à tirets ou numérotées.
+   On échappe d'abord tout le HTML, puis on remet seulement ces quelques balises. */
+function miseEnForme(t) {
+  const echappe = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const lignes = echappe.split("\n");
+  let html = "", liste = null;
+  for (const l of lignes) {
+    const puce = l.match(/^\s*[-•*]\s+(.*)/), num = l.match(/^\s*\d+[.)]\s+(.*)/);
+    const type = puce ? "ul" : num ? "ol" : null;
+    if (type !== liste) { if (liste) html += `</${liste}>`; if (type) html += `<${type}>`; liste = type; }
+    const contenu = (puce || num) ? (puce || num)[1] : l;
+    const gras = contenu.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    html += type ? `<li>${gras}</li>` : (gras.trim() ? `<p style="margin:6px 0">${gras}</p>` : "");
+  }
+  if (liste) html += `</${liste}>`;
+  return html;
+}
+
+// « … est en train d'écrire »
+function indicateur(fil, visible, texte) {
+  let el = $(fil).querySelector(".tape");
+  if (!visible) { el?.remove(); return; }
+  if (!el) { el = document.createElement("div"); el.className = "tape"; $(fil).append(el); }
+  el.innerHTML = `${texte} <i>●●●</i>`;
+  $(fil).scrollTop = $(fil).scrollHeight;
+}
+
+// Chronomètre (la partie s'arrête toute seule à 10 minutes côté ElevenLabs)
+function demarrerChrono() {
+  debut = Date.now();
+  clearInterval(minuterie);
+  minuterie = setInterval(() => {
+    const s = Math.floor((Date.now() - debut) / 1000);
+    $("chrono").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` + (s > DUREE_MAX - 60 ? " · bientôt fini" : "");
+  }, 1000);
+}
+
+// Noms affichés au-dessus des bulles
+const nomIA = () => partie.mode === "julien" ? partie.profil.nom.split(" ")[0] : "Julien (modèle)";
+const nomMoi = () => partie.mode === "julien" ? "Toi (Julien)" : `Toi (${partie.profil.nom.split(" ")[0]})`;
+
+function preparerEcranPartie(voix) {
+  const p = partie.profil;
+  $("fil").innerHTML = "";
+  journal = [];
+  $("partieKicker").textContent = `${CANAUX[partie.canal].nom} · relouitude ${partie.relou}/5 · budget ${BUDGETS[partie.budget].nom.toLowerCase()}`;
+  // En mode surprise, on cache le nom du client à Julien (il le découvrira)
+  $("partieTitre").textContent = partie.mode === "julien"
+    ? (surprise ? "Un client mystère" : `Face à ${p.nom}`)
+    : `Tu joues ${p.nom}`;
+  // La fiche personnage n'est utile que si Julien joue le client
+  $("fiche").hidden = partie.mode !== "client";
+  if (partie.mode === "client") {
+    $("ficheContenu").innerHTML = "";
+    const lignes = [
+      ["Qui", `${p.nom}, ${p.age} ans`], ["Le vélo", p.velo], ["Ce que tu veux", p.demande],
+      ["Ton caractère", p.caractere], ["Ta réplique fétiche", p.objection],
+      ["Ton secret (ne le donne que si on te pose la bonne question)", p.secret],
+      ["Joue-le à", `${partie.relou}/5 · ${RELOU[partie.relou].nom} : ${RELOU[partie.relou].texte}`],
+      ["Ton budget", BUDGETS[partie.budget].texte],
+    ];
+    for (const [t, d] of lignes) {
+      const dt = document.createElement("dt"); dt.textContent = t;
+      const dd = document.createElement("dd"); dd.textContent = d;
+      $("ficheContenu").append(dt, dd);
+    }
+  }
+  // La consigne pour démarrer
+  const qui = partie.mode === "julien";
+  const c = partie.canal;
+  $("consigne").textContent = qui
+    ? ({ telephone: "Le téléphone sonne : décroche ! (« TAC Vélo, Julien, bonjour ! »)",
+         whatsapp: "Un nouveau client t'écrit sur WhatsApp : commence par un petit « Bonjour ! » et laisse-le expliquer.",
+         atelier: "Un client entre à l'atelier avec son vélo : accueille-le !",
+         domicile: "Tu sonnes chez le client pour l'intervention à domicile : présente-toi !" })[c]
+    : (OUVERTURE_JULIEN[c] ? "Julien parle en premier ; ensuite, à toi de jouer le client." : "Écris le premier message WhatsApp de ton client à Julien.");
+  $("saisie").hidden = voix;
+  $("etatVoix").hidden = !voix;
+  $("boutonDebrief").disabled = false;
+  $("boutonFin").disabled = false;
+}
+
+/* Lance une partie : voix = true (micro) ou false (à l'écrit) */
+async function lancer(voix) {
+  partie = { ...lireReglages(), voix };
+  preparerEcranPartie(voix);
+  afficher("ecranPartie");
+  bulle("fil", "systeme", "Connexion…");
+
+  if (voix) {
+    try { await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { return erreur(e, "Le micro n'est pas autorisé. Autorise-le, ou joue à l'écrit."); }
+  }
+  const joueClient = partie.mode === "julien";   // l'IA joue le client
+  try {
+    const Conversation = await chargerSDK();
+    conversation = await Conversation.startSession({
+      agentId: AGENT_ENTRAINEMENT,
+      textOnly: !voix,                           // à l'écrit : pas d'audio du tout (plus rapide)
+      overrides: {
+        agent: {
+          prompt: { prompt: joueClient ? promptClient(partie.profil, partie) : promptJulien(partie) },
+          // L'IA-client attend que Julien parle ; le Julien modèle décroche lui-même
+          firstMessage: joueClient ? "" : OUVERTURE_JULIEN[partie.canal],
+        },
+        tts: { voiceId: joueClient ? partie.profil.voix : VOIX_JULIEN },
+        conversation: { textOnly: !voix },
+      },
+      onConnect: () => {
+        $("fil").innerHTML = "";
+        bulle("fil", "systeme", "C'est parti !");
+        demarrerChrono();
+        if (voix) etatVoix("À toi, parle normalement.");
+        else $("message").focus();
+      },
+      // Chaque réplique terminée (de l'IA, ou de Julien quand il parle à la voix)
+      onMessage: ({ message, source }) => {
+        if (!message) return;
+        if (source === "ai") {
+          indicateur("fil", false);
+          journal.push({ qui: "ia", texte: message });
+          bulle("fil", "ia", message, nomIA());
+        } else if (voix) {
+          // À l'écrit, nos messages sont déjà affichés au moment de l'envoi
+          journal.push({ qui: "moi", texte: message });
+          bulle("fil", "moi", message, nomMoi());
+        }
+      },
+      onModeChange: ({ mode }) => {
+        if (!voix || !conversation) return;
+        etatVoix(mode === "speaking" ? `${nomIA()} parle… (tu peux couper)` : "À toi, parle normalement.");
+      },
+      onDisconnect: finPartie,
+      onError: (m) => erreur(m),
+    });
+    // ⚠️ « conversation » n'existe qu'APRÈS le await : l'animation démarre donc ici,
+    // et pas dans onConnect (appelé pendant l'ouverture, avant le retour du await).
+    if (voix) animerOnde();
+  } catch (e) {
+    erreur(e);
+  }
+}
+
+function etatVoix(t) { $("etatVoixTexte").textContent = t; }
+
+// Le petit rond à côté de l'état bouge avec le volume de la voix de l'IA
+function animerOnde() {
+  if (!conversation) return;
+  try { $("etatVoix").style.setProperty("--niveau", Math.min(1, (conversation.getOutputVolume?.() || 0) * 2.5).toFixed(2)); } catch (e) {}
+  animation = requestAnimationFrame(animerOnde);
+}
+
+function finPartie() {
+  conversation = null;
+  clearInterval(minuterie);
+  cancelAnimationFrame(animation);
+  indicateur("fil", false);
+  if (!$("ecranPartie").hidden) {
+    bulle("fil", "systeme", "Partie terminée. Demande ton débrief, ou change de partie.");
+    if (partie?.voix) etatVoix("Partie terminée.");
+    $("saisie").hidden = true;
+    $("boutonFin").disabled = true;
+  }
+}
+
+function erreur(e, message) {
+  console.error("Entraînement :", e);
+  bulle("fil", "systeme", message || "La connexion a échoué. Réessaie dans un moment (et vérifie que tu es bien sur tac-velo.fr).");
+  if (conversation) { try { conversation.endSession(); } catch (x) {} }
+  finPartie();
+}
+
+// Envoi d'un message à l'écrit
+$("saisie").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const texte = $("message").value.trim();
+  if (!texte || !conversation) return;
+  journal.push({ qui: "moi", texte });
+  bulle("fil", "moi", texte, nomMoi());
+  conversation.sendUserMessage(texte);
+  $("message").value = ""; ajusterHauteur($("message"));
+  indicateur("fil", true, `${nomIA()} écrit`);
+});
+// Entrée = envoyer ; Maj + Entrée = aller à la ligne (sur ordinateur)
+for (const [zone, form] of [["message", "saisie"], ["messageDebrief", "saisieDebrief"]]) {
+  $(zone).addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); $(form).requestSubmit(); }
+  });
+  $(zone).addEventListener("input", () => ajusterHauteur($(zone)));
+}
+// La zone de saisie grandit avec le texte
+function ajusterHauteur(t) { t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 140) + "px"; }
+
+$("boutonFin").addEventListener("click", async () => { if (conversation) await conversation.endSession(); });
+$("boutonRejouer").addEventListener("click", async () => {
+  if (conversation) await conversation.endSession();
+  surprise = false;
+  afficher("ecranReglages");
+});
+window.addEventListener("pagehide", () => { conversation?.endSession(); debriefConv?.endSession(); });
+
+// La conversation en texte simple (pour le coach et pour le bouton « Copier »)
+function transcription() {
+  return journal.map((l) => `${l.qui === "ia" ? nomIA() : nomMoi()} : ${l.texte}`).join("\n");
+}
+async function copier(texte, bouton) {
+  try { await navigator.clipboard.writeText(texte); const t = bouton.textContent; bouton.textContent = "Copié ✓"; setTimeout(() => (bouton.textContent = t), 1500); }
+  catch (e) { alert("Impossible de copier automatiquement sur ce téléphone."); }
+}
+$("boutonCopier").addEventListener("click", (e) => copier(transcription(), e.currentTarget));
+
+/* ============================================================
+   LE DÉBRIEF
+   On arrête la partie, puis on ouvre une NOUVELLE conversation
+   (toujours à l'écrit) avec un coach qui reçoit toute la partie.
+   Avantage : le débrief marche aussi après avoir raccroché, et
+   on peut poser des questions au coach ensuite.
+   ============================================================ */
+let debriefConv = null;
+let journalDebrief = [];
+
+$("boutonDebrief").addEventListener("click", async () => {
+  if (conversation) { try { await conversation.endSession(); } catch (e) {} }
+  lancerDebrief();
+});
+
+async function lancerDebrief() {
+  afficher("ecranDebrief");
+  $("filDebrief").innerHTML = "";
+  journalDebrief = [];
+  $("debriefTitre").textContent = surprise ? `Le client mystère était ${partie.profil.nom}` : "Le coach relit ta partie…";
+  indicateur("filDebrief", true, "Le coach relit la conversation");
+  try {
+    const Conversation = await chargerSDK();
+    debriefConv = await Conversation.startSession({
+      agentId: AGENT_ENTRAINEMENT,
+      textOnly: true,
+      overrides: {
+        agent: { prompt: { prompt: promptDebrief(partie.mode, partie.profil, partie, transcription()) }, firstMessage: "" },
+        conversation: { textOnly: true },
+      },
+      onMessage: ({ message, source }) => {
+        if (source !== "ai" || !message) return;
+        indicateur("filDebrief", false);
+        journalDebrief.push("Coach : " + message);
+        bulle("filDebrief", "ia", message, "Coach", true);
+        $("debriefTitre").textContent = surprise ? `Le client mystère était ${partie.profil.nom}` : "Ton débrief";
+      },
+      onDisconnect: () => {
+        debriefConv = null;
+        indicateur("filDebrief", false);
+        bulle("filDebrief", "systeme", "Le coach a raccroché (10 minutes maximum).");
+      },
+      onError: (m) => { console.error("Débrief :", m); },
+    });
+    // La ligne est ouverte (le await est fini) : on demande le débrief
+    debriefConv.sendUserMessage("Fais-moi le débrief de cette partie.");
+  } catch (e) {
+    console.error(e);
+    indicateur("filDebrief", false);
+    bulle("filDebrief", "systeme", "Le coach ne répond pas. Réessaie dans un moment.");
+  }
+}
+
+$("saisieDebrief").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const texte = $("messageDebrief").value.trim();
+  if (!texte || !debriefConv) return;
+  journalDebrief.push("Julien : " + texte);
+  bulle("filDebrief", "moi", texte, "Toi");
+  debriefConv.sendUserMessage(texte);
+  $("messageDebrief").value = ""; ajusterHauteur($("messageDebrief"));
+  indicateur("filDebrief", true, "Le coach réfléchit");
+});
+
+async function quitterDebrief() { if (debriefConv) { try { await debriefConv.endSession(); } catch (e) {} } }
+$("boutonRevanche").addEventListener("click", async () => {
+  await quitterDebrief();
+  surprise = false;
+  lancer(partie.voix);   // mêmes réglages (ils sont toujours cochés sur l'écran de réglage)
+});
+$("boutonAutre").addEventListener("click", async () => { await quitterDebrief(); surprise = false; afficher("ecranReglages"); });
+$("boutonCopierDebrief").addEventListener("click", (e) =>
+  copier(`PARTIE\n${transcription()}\n\nDÉBRIEF\n${journalDebrief.join("\n\n")}`, e.currentTarget));
+
+// Boutons de lancement
+$("lancerEcrit").addEventListener("click", () => { surprise = false; lancer(false); });
+$("lancerVoix").addEventListener("click", () => { surprise = false; lancer(true); });
+</script>
+</body>
+</html>

@@ -16,9 +16,9 @@ domaine en ligne.
   zone, horaires), diagnostic `DIAG_*` (qui relit les étapes des astuces dans la page :
   garder `id="astuce-…"`, `<p class="outils">` et `<ol>`), assistant vocal `AGENT_RAYON`,
   suivi `SUIVI`. Version dans le commentaire d'en-tête et `VERSION`.
-- Un prix est répété à 5 endroits, à changer ensemble : la carte du tarif (HTML),
+- Un prix est répété à 6 endroits, à changer ensemble : la carte du tarif (HTML),
   `DIAG_VERDICTS` (script), les questions fréquentes, `hasOfferCatalog` du JSON-LD,
-  et le prompt de Rayon côté ElevenLabs.
+  le prompt de Rayon côté ElevenLabs, et `TARIFS_TEXTE` de `entrainement/index.html`.
 - Ordre des sections (v1.13.0) : accroche, tarifs, déroulé + lieux, méthode (3 engagements),
   diagnostic, astuces, Rayon (bandeau compact), questions fréquentes, contact.
 - Ton : le site parle de « Julien » à la 3e personne partout (plus de « je ») ; les SMS
@@ -31,6 +31,16 @@ domaine en ligne.
 - `404.html` — page « introuvable » (liens en `/…`, `noindex`).
 - `icones/partage.png` — image de partage 1200 × 630 ; si on la change, augmenter le
   `?v=` de `og:image` pour que WhatsApp et Facebook la reprennent.
+
+- `entrainement/index.html` — « Le vestiaire », page CACHÉE d'entraînement de Julien
+  (jeu de rôle avec des clients, 10 profils, niveau de relouitude, débrief). Aucun lien
+  depuis le site, `noindex`, absente du sitemap ; adresse : https://tac-velo.fr/entrainement/.
+  Sa propre `VERSION` (en-tête + script). Agent ElevenLabs dédié
+  `agent_8801m8a1yayhen595kw6qhp7zn65` (« TAC Vélo – Entraînement de Julien »), cerveau
+  Claude Sonnet 5.5 ; la page lui envoie tout (prompt, voix du personnage, mode texte) en
+  « overrides » : ne pas décocher ces autorisations dans l'onglet Sécurité de l'agent.
+  Limites : 40 parties/jour, 2 en même temps, 10 min par partie, gardées 30 jours.
+  Domaines autorisés : les mêmes que Rayon.
 
 ## Règles
 - Mentions légales (v1.12.0) : bloc dépliable `#mentions` en pied de page. À mettre à jour
